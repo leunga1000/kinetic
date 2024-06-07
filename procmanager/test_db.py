@@ -1,4 +1,4 @@
-from db import *
+from procmanager.db import *
 import db
 db.filename = 'test.db'
 

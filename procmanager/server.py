@@ -1,5 +1,5 @@
-from web_server import start_web_server, make_app
-from scheduler import Scheduler
+from procmanager.web_server import start_web_server
+from procmanager.scheduler import Scheduler
 import logging
 log = logging.Logger('PythonProcessRunner')
 
@@ -35,9 +35,9 @@ def start_scheduler():
 
 
 def start_server(web_app=None):  # web_app this is to pass to the socketify initialisation interface
-    #start_scheduler()
+    start_scheduler()
     #start_web_server(web_app)
-    make_app(web_app)
+    start_web_server(web_app)
 
 # Web server - bottle.py does stop on ctrl c but takes a very long time.
 # import signal, sys

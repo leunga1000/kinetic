@@ -1,7 +1,7 @@
 # webapp.py - example from RealPython https://realpython.com/python-http-server/ with some tweaks for updates
 
 from socketify import App, MiddlewareRouter
-import config
+from procmanager import config
 
 async def get_user(authorization):
     for user, data in config.ACCOUNTS.items():
@@ -19,25 +19,33 @@ async def auth(res, req, data=None):
     
     user = await get_user(auth)
     if not user:
-        res.write_status(403).end("not  sas authorized")
+        res.write_status(403).end("not authorized")
         # returning Falsy in middlewares just stop the execution of the next middleware
         return False
 
     # returns extra data
+    req.user = user
     return user
 
+# testing url http://localhost:3000/runjob/hello?authorization=13131
 async def runjob(res, req, jobname):
-    res.end('jobname  ab' + jobname)
+    #print(user)
+    #print(dir(res))
+    #print(dir(req))
+    #print(res.user)
+    from job_instance import run_job
+    run_job(jobname)
+    res.end('jobname  ab' + jobname + ' ' + str(req.user))
 
 
 def make_app(app: App):
-    auth_router = MiddlewareRouter(app, auth)
     app.get("/", lambda res, req: res.end("Hello World socketify from Python!"))
+    auth_router = MiddlewareRouter(app, auth)
     auth_router.get("/runjob/:jobname", runjob)
-    app.listen(3000, lambda config: print("Listening on port http://localhost:%d now\n" % config.port))
+    # app.listen(3000, lambda config: print("Listening on port http://localhost:%d now\n" % config.port))
 
-def start_web_server():
-    app = App()
+def start_web_server(web_app=None):
+    app = web_app or App()
     make_app(app)
     app.listen(3000, lambda config: print("Listening on port http://localhost:%d now\n" % config.port))
     app.run()

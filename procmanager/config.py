@@ -6,7 +6,7 @@ import toml
 # APP Config
 AUTORELOAD = True
 ACCOUNTS = {'example1': {'api_key': '13131'}}
-
+RUN_DIR = os.path.expanduser('~')  # os.path.dirname(os.path.realpath(__file__)) 
 
 # JOBS CONFIG
 

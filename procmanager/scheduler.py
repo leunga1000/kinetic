@@ -1,6 +1,6 @@
-from job import Job
-from config import load_config
-from dynamic_user_config import add_to_dynamic_config, remove_from_dynamic_config
+from procmanager.job import Job
+from procmanager.config import load_config
+from procmanager.dynamic_user_config import add_to_dynamic_config, remove_from_dynamic_config
 import logging
 log = logging.Logger('PythonProcessRunner')
 

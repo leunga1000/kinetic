@@ -1,0 +1,61 @@
+#[build-system]
+#requires = ["hatchling"]
+#build-backend = "hatchling.build"
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "procmanager"
+version = "0.1.0"
+dependencies = [
+    "socketify",
+    "croniter",
+    "toml",
+]
+requires-python = ">=3.8"
+authors = [
+  {name = "Anthony Leung", email = "findmeon@github.com"},
+]
+maintainers = [
+  # {name = "Brett Cannon", email = "brett@example.com"}
+]
+description = "Process Manager"
+readme = "README.rst"
+license = {file = "LICENSE.txt"}
+keywords = ["egg", "bacon", "sausage", "tomatoes", "Lobster Thermidor"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python"
+]
+
+#[project.optional-dependencies]
+#gui = ["PyQt5"]
+#cli = [
+#  "rich",
+#  "click",
+#]
+
+[project.urls]
+Homepage = "https://example.com"
+Documentation = "https://readthedocs.org"
+Repository = "https://github.com/me/spam.git"
+"Bug Tracker" = "https://github.com/me/spam/issues"
+Changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
+
+[project.scripts]
+pm-cli = "procmanager.main:main"
+pm-cli2 = "procmanager.procmanager:main"
+pm-cli4 = "main:main"
+pm-cli3 = "procmanager:main"
+
+# avoid terminal window on windows
+[project.gui-scripts] 
+pm-silent = "procmanager.procmanager:main"
+
+#[project.entry-points."spam.magical"]
+#tomatoes = "spam:main_tomatoes"
+
+[tool.setuptools]
+#py-modules = ["src.procmanager"]
+packages = ["procmanager"]

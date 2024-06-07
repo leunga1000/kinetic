@@ -1,7 +1,7 @@
 from threading import Timer
 from croniter import croniter
 from datetime import datetime
-from job_instance import run_job
+from procmanager.job_instance import run_job
 import logging
 
 log = logging.Logger('PythonProcessRunner')

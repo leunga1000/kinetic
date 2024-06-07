@@ -1,0 +1,3 @@
+[hello.txt]
+command="echo hello >> hello.txt"
+schedule=""  # no schedule for instant or remote trigger only

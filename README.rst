@@ -10,14 +10,41 @@ Written to coordinate data processing tasks.
 Usage:
 ======
 
-python run.py
+`pip install procmanager`
 
+Run web server TODO
+`pm-cli`
+
+Run particular job by name
+`pm-cli --jobname <jobname>`
+
+
+dev mode:
+---------
+python -m socketify server:start_server --port 3000  --reload
+
+This is mostly intended to run in user space.
+
+build package:
+--------------
+install dev requirements
+`python -m build` in package directory
+
+SSL:
+====
+We recommend using a reverse_proxy such as nginx apache or Caddy to provide SSL functionality.
 
 Alternatives:
 =============
 
-Python Scheduler, APScheduler
-Cronitor - email and status service, keep using cron jobs.
-Julia Oxygen, TaskSchedule.jl
-Ray - Remote actors
-Rufus Scheduler
+- Cron (obviously!)
+- Cronitor - email and status service, keep using cron jobs.
+- Python Scheduler, APScheduler
+- jobflow, jobflow remote
+- AWS Lambda, Step Functions and EventBridge
+    - immense fun and basically free for small tasks, watch out for storage and bandwidth
+- Julia Oxygen, TaskSchedule.jl
+- Ray - Remote actors
+- Rufus Scheduler
+- Crystal Tasker
+- Rust scheduler

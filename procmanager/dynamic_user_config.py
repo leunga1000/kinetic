@@ -4,7 +4,7 @@ import toml
 from threading import RLock
 l = RLock()
 
-from config import DYN_CONFIG_FILE
+from procmanager.config import DYN_CONFIG_FILE
 DYN_CONFIG = toml.load(DYN_CONFIG_FILE) if os.path.exists(DYN_CONFIG_FILE) else {}
 
 def remove_from_dynamic_config(jobname):

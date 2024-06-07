@@ -2,13 +2,14 @@ import subprocess
 import platform
 import signal
 import sys
+from copy import copy
 from subprocess import TimeoutExpired, PIPE, STDOUT
 from threading import Thread
 import time
 from datetime import datetime
-import db
-from db import append_log
-
+from procmanager import db
+from procmanager.db import append_log
+from procmanager import config
 
 JOBS = {"hello": "echo hello",
         "sleep": "sleep 10",
@@ -30,7 +31,7 @@ class JobInstance:
                                status='OKC', 
                                finished_at=datetime.now().timestamp())
 
-def stream_pipe(source, process):
+def _stream_pipe(source, process):
     if source == 'stdout':
         pipe = process.stdout
     else:
@@ -45,9 +46,9 @@ def stream_pipe(source, process):
         time.sleep(1)
 
 
-def run_job(jobname):
+def actually_run_job(jobname):
     # close cleanly on sigint
-    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGINT, _signal_handler)
     # global process
 
     job = JOBS[jobname]
@@ -61,8 +62,8 @@ def run_job(jobname):
     if job:
         process = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
         __m.process = process
-        th_out = Thread(target=stream_pipe, args=['stdout', process], daemon=True).start()
-        th_err = Thread(target=stream_pipe, args=['stderr', process], daemon=True).start()
+        th_out = Thread(target=_stream_pipe, args=['stdout', process], daemon=True).start()
+        th_err = Thread(target=_stream_pipe, args=['stderr', process], daemon=True).start()
         while True:
             # while (so := process.stdout.readline()):
             #     print(so)
@@ -81,9 +82,30 @@ def run_job(jobname):
     db.list_job_instances()
 
 
-def signal_handler(sig, frame):
+def _signal_handler(sig, frame):
     # global process
     __m.process.kill()
     __m.job_instance.cancel()
     sys.exit(1)
 
+
+
+def run_job(jobname):
+    """ Interface to the job running code.
+    Spawns an instance of this code in job running mode """
+    
+    args = copy(sys.argv)
+    
+    # if args[1] == '-m':
+    #     args.pop(1)
+    # if args[1] == 'socketify':
+    #     args.pop(1)
+    # args.remove('socketify')
+    args = [sys.executable]
+    module_name = sys.modules[__name__]
+    args += ['-m', module_name]
+    args.append('--jobname')
+    args.append(jobname)
+    # args = [sys.executable] + args
+    print(args)
+    subprocess.Popen(args, cwd=config.RUN_DIR)
