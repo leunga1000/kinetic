@@ -44,10 +44,12 @@ def make_app(app: App):
     auth_router.get("/runjob/:jobname", runjob)
     # app.listen(3000, lambda config: print("Listening on port http://localhost:%d now\n" % config.port))
 
-def start_web_server(web_app=None):
+def start_web_server(web_app=None, args: 'argparse Namespace'=None):
+    port = args.port or 8737
     app = web_app or App()
     make_app(app)
-    app.listen(3000, lambda config: print("Listening on port http://localhost:%d now\n" % config.port))
+    # app.listen(port, lambda config: print("Listening on port http://localhost:%d now\n" % config.port))
+    app.listen(port, lambda config: print("Listening on port http://localhost:%d now\n" % config.port)) # this different config
     app.run()
     
 

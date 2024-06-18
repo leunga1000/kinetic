@@ -1,5 +1,5 @@
 from procmanager.job import Job
-from procmanager.config import load_config
+from procmanager.config import load_job_defs
 from procmanager.dynamic_user_config import add_to_dynamic_config, remove_from_dynamic_config
 import logging
 log = logging.Logger('PythonProcessRunner')
@@ -11,21 +11,22 @@ class Scheduler:
         self.jobs = {}
         self.reload()
     
-    def make_job(self, jobname, schedule, command):
+    def make_job(self, jobname, schedule, command, givewayto):
         self.job_defs[jobname] = {'jobname': jobname,
                                   'schedule': schedule,
-                                  'command': command}
+                                  'command': command,
+                                  'givewayto': givewayto}
         if jobname in self.jobs:
             existing_job =  self.jobs[jobname]
             existing_job.pause()
             del self.jobs
 
-        job = Job(jobname, schedule, command)
+        job = Job(jobname, schedule, command, givewayto)
         self.jobs[jobname] = job
     
-    def add_new_job(self, jobname, schedule, command):
-        add_to_dynamic_config(jobname, schedule, command)
-        self.make_job(jobname, schedule, command)
+    def add_new_job(self, jobname, schedule, command, givewayto):
+        add_to_dynamic_config(jobname, schedule, command, givewayto)
+        self.make_job(jobname, schedule, command, givewayto)
 
     def delete_job_forever(self, jobname):
         # This won't delete from user defined files!
@@ -44,8 +45,8 @@ class Scheduler:
             del job
         self.jobs = {}
 
-        self.job_defs = load_config()
+        self.job_defs = load_job_defs()
         for jobname, job_def in self.job_defs.items():
-            job =  Job(**job_def)
+            job =  Job(jobname=jobname, **job_def)
             self.jobs[jobname] = job
         

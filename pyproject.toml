@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "procmanager"
-version = "0.1.0"
+version = "0.1.3"
 dependencies = [
     "socketify",
     "croniter",
@@ -15,12 +15,12 @@ dependencies = [
 ]
 requires-python = ">=3.8"
 authors = [
-  {name = "Anthony Leung", email = "findmeon@github.com"},
+  {name = "Anthony Leung", email = "leunga1000@yahoo.com"},
 ]
 maintainers = [
   # {name = "Brett Cannon", email = "brett@example.com"}
 ]
-description = "Process Manager"
+description = "Python Process Manager"
 readme = "README.rst"
 license = {file = "LICENSE.txt"}
 keywords = ["egg", "bacon", "sausage", "tomatoes", "Lobster Thermidor"]
@@ -45,13 +45,12 @@ Changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
 
 [project.scripts]
 pm-cli = "procmanager.main:main"
-pm-cli2 = "procmanager.procmanager:main"
-pm-cli4 = "main:main"
-pm-cli3 = "procmanager:main"
+# pm-cli2 = "procmanager:main"
+# pm-serve = "procmanager.main:serve"
 
 # avoid terminal window on windows
 [project.gui-scripts] 
-pm-silent = "procmanager.procmanager:main"
+# pm-silent = "procmanager.procmanager:main"
 
 #[project.entry-points."spam.magical"]
 #tomatoes = "spam:main_tomatoes"

@@ -1,10 +1,17 @@
 from datetime import datetime 
+import os
 import sqlite3
-FILENAME = 'ppr.db'
+from procmanager import config
+from procmanager import process_utils
+
+DB_PATH = config.DB_PATH
 
 def get_cursor():
-    conn = sqlite3.connect(FILENAME)
+    new_db = os.path.exists(DB_PATH)
+    conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
+    if new_db:
+        create_db(conn, cur)
     return conn, cur
 
 def _clear_db(): # for testing
@@ -13,37 +20,45 @@ def _clear_db(): # for testing
     cur.execute("""drop table if exists ji_logs;""")
     conn.commit()
 
-def create_db():
+def create_db(conn, cur):
     JOB_INSTANCES =  """Create table if not exists job_instances (id VARCHAR, 
                  jobname VARCHAR,
                  status VARCHAR,
                  started_at INT,
-                 finished_at INT
+                 finished_at INT,
+                 pid INT
                  );"""
     JI_LOGS = """Create table if not exists ji_logs (
                          id VARCHAR, 
                          source INT, line VARCHAR
                         );""" # 0 for stdout 1 for stderr
-    conn, cur = get_cursor() 
+    
     cur.execute(JOB_INSTANCES)
     cur.execute(JI_LOGS)
     conn.commit()
 
 def insert_job_instance(_id, jobname):
     now_ts = datetime.now().timestamp()
-    INSERT_JOB = f""" INSERT INTO job_instances VALUES ("{_id}",  "{jobname}", "NEW", {now_ts}, NULL);"""
+
+    INSERT_JOB = f""" INSERT INTO job_instances VALUES (
+                "{_id}",  "{jobname}", "NEW", {now_ts}, NULL, NULL 
+                               );"""
     conn, cur = get_cursor()
     cur.execute(INSERT_JOB)
     conn.commit()    
 
 def list_job_instances(jobname=None):
-    LIST_JOBS = f"""select *, finished_at - started_at from job_instances"""
+    LIST_JOBS = f"""select *, coalesce(finished_at, strftime('%s', 'now')) - started_at as running_length from job_instances"""
     if jobname:
         LIST_JOBS = f"""select *, finished_at - started_at from job_instances where jobname = "{jobname}" """
-    res = get_cursor()[1].execute(LIST_JOBS).fetchall()
+    conn, _ = get_cursor()
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    res = cur.execute(LIST_JOBS).fetchall()
 
-    print(res)
-    return res
+    # print(res)
+    print(cur.description)
+    return (dict(r) for r in res)
 
 def append_log(_id, line, source):
     # this could be slow, might want to put it in a file instead.
@@ -77,3 +92,22 @@ def update_job_instance(_id, **kwargs):
     print(UPDATE_JOB_INSTANCE)
     cur.execute(UPDATE_JOB_INSTANCE)
     conn.commit()
+
+
+def is_job_running(jobname):
+    """ Checks db if process running, then verifies if pid
+       is really running, clears up if not """
+    IS_JOB_RUNNING = f"""SELECT id, pid from job_instances where
+         jobname = "{jobname}" and
+         status = "NEW" """
+    conn, cur = get_cursor()
+    print(IS_JOB_RUNNING)
+    res = list(cur.execute(IS_JOB_RUNNING).fetchall())
+    running_result = False
+    for _id, pid in res:
+        if process_utils.is_running(pid):
+            running_result = True
+        else:
+            update_job_instance(_id, status='DSC', finished_at=datetime.now().timestamp())
+    print(running_result)
+    return running_result
