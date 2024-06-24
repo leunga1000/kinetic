@@ -64,10 +64,15 @@ class JobInstance:
 def cleanup_jobs():
     boot_time = psutil.boot_time()  # TODO check when machine has timezones
     for ji in db.list_job_instances():
-        if ji['status'] == 'NEW' and ji['started_at'] < boot_time:
-            db.update_job_instance(_id = ji['id'], 
-                                   status = 'CNC',
-                                   finished_at = boot_time)
+        if ji['status'] == 'NEW':
+            if ji['started_at'] < boot_time:
+                db.update_job_instance(_id = ji['id'], 
+                                       status = 'CNC',
+                                       finished_at = boot_time)
+            elif ji['pid']:
+                print(ji['pid'])
+                db.is_process_running(ji['id'], ji['pid'])
+               
 
 def _stream_pipe(source, process):
     if source == 'stdout':
@@ -75,10 +80,11 @@ def _stream_pipe(source, process):
     else:
         pipe = process.stderr
     # need out and err versions really
-    while True:
-        line = pipe.readline()
+    #while True:
+    #    line = pipe.readline()
+    for line in pipe:
         print(line)
-        append_log(__m.job_instance.id, source, line)
+        append_log(__m.job_instance.id, source, line.decode())
     #if process.poll() is not None:
     #    return
     #    # time.sleep(1)
@@ -111,12 +117,23 @@ def actually_run_job(jobname):
     else:
         args = ['bash', '-c']
     args.append(job_def['command'])
+    th_out, th_err = None, None
     if job_def:
+        ''' SO code, simpler  '''
+        with subprocess.Popen(args, stdout=PIPE, stderr=STDOUT, text=True) as process:
+            __m.process = process
+            __m.job_instance.save_pid(process.pid)
+            for line in process.stdout:
+                append_log(__m.job_instance.id, 'stdout', line)
+        ''' Your code, bit naff, might have contention between stdout and stderr threads? '''
+        '''
         process = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
         __m.process = process
         __m.job_instance.save_pid(process.pid)
-        th_out = Thread(target=_stream_pipe, args=['stdout', process], daemon=True).start()
-        th_err = Thread(target=_stream_pipe, args=['stderr', process], daemon=True).start()
+        th_out = Thread(target=_stream_pipe, args=['stdout', process], daemon=True)
+        th_out.start()
+        th_err = Thread(target=_stream_pipe, args=['stderr', process], daemon=True)
+        th_err.start()
         while True:
             # while (so := process.stdout.readline()):
             #     print(so)
@@ -130,13 +147,21 @@ def actually_run_job(jobname):
         
         # for (o, e) in stream_from_process(process):
         #     print(o, e)
-    print(process)
-    print(process.pid)
-    if process.returncode == 0:
-        __m.job_instance.complete()
-    else:
-        __m.job_instance.error()
-    db.list_job_instances()
+        '''
+        print(process)
+        print(process.pid)
+
+        if process.returncode == 0:
+            __m.job_instance.complete()
+        else:
+            __m.job_instance.error()
+    '''
+    if th_out:
+        th_out.join()
+    if th_err:
+        th_err.join()
+    '''
+    # db.list_job_instances()
 
 
 def _signal_handler(sig, frame):

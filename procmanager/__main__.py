@@ -3,11 +3,11 @@ import argparse
 from datetime import datetime
 
 from procmanager.job_instance import actually_run_job
-from procmanager.server import start_server
 from procmanager.config import load_job_defs, CONFIG_FILES
 import procmanager.db
 
 def serve(args):
+    from procmanager.server import start_server
     start_server(args=args) # must use named arguments
 
 def run(args):
@@ -27,12 +27,58 @@ def list_(args):
 
 
 def show_log(args):
+    import rich
+    from rich import print as rprint, table, box
+    if hasattr(args, 'follow') and args.follow:
+        import rich.live, time
+        def get_table():
+            rows, properties = generate_log_table(args) 
+            t = table.Table(box=box.MINIMAL_HEAVY_HEAD, expand=True)
+            for p in properties:
+                t.add_column(p)
+            for row in rows[-25:]:
+                #rprint(*row)
+                t.add_row(*row)
+            return t
+        t = get_table()
+        with rich.live.Live(t, refresh_per_second=0.25) as live_table:
+            while True:
+                live_table.update(t)
+                time.sleep(4)
+                t = get_table()
+    else:
+        rows, properties = generate_log_table(args) 
+        import tabulate
+        #rprint(tabulate.tabulate(rows[-50:]))
+        from rich.console import Console
+        console = Console()
+        console.print(tabulate.tabulate(rows[-100:]), highlight=False)
+        #for row in rows:
+        #   rprint(tabulate.tabulate(row))
+        #rich.print(t)
+
+def generate_log_table(args):
     properties = ['id', 'status', 'started_at', 'finished_at', 'pid', 'running_length'] #jobname
+    def format_value(k, v):
+        if k == 'status':
+            if v == 'OKC':
+                v = f'[green]{v}[/green]'
+            elif v == 'NEW':
+                v = f'[cyan]{v}[/cyan]'
+            elif v == 'SKP':
+                v = f'[bright_black]{v}[/bright_black]'
+            elif v == 'ERR':
+                v = f'[red]{v}[/red    ]'
+        return str(v)
+    rows = []
     for ji in procmanager.db.list_job_instances():
         ji = {k:v for k, v in ji.items() if k in properties}
         ji['started_at'] = datetime.fromtimestamp(ji['started_at']).strftime('%Y-%m-%d %H:%M:%S') if ji['started_at'] else None
         ji['finished_at'] = datetime.fromtimestamp(ji['finished_at']).strftime('%Y-%m-%d %H:%M:%S') if ji['finished_at'] else None
-        print(ji)
+        #print(*list(ji.values()))
+        rows.append([format_value(k,v) for k,v in ji.items()])
+    return rows, properties 
+
 
 
 def edit(args):
@@ -75,6 +121,9 @@ def main():
     parser_edit = subparsers.add_parser('edit')
     parser_edit.set_defaults(func=edit, sub_parser=parser_edit)
     parser_log = subparsers.add_parser('log')
+    parser_log.set_defaults(func=show_log, sub_parser=parser_log)
+    parser_log = subparsers.add_parser('ll', help="log in live mode")
+    parser_log.add_argument('follow', action='store_true', default=True)
     parser_log.set_defaults(func=show_log, sub_parser=parser_log)
     parser_reload = subparsers.add_parser('reload')
     parser_reload.set_defaults(func=reload, sub_parser=parser_reload)
