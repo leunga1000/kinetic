@@ -26,9 +26,16 @@ def list_(args):
     # TODO should really print the original files with comments here. maybe get people to put comments in a description/help/comments field
 
 
+from colorama import just_fix_windows_console
+just_fix_windows_console()
+from termcolor import colored
+# There's also blessings for bold, underline.
+
 def show_log(args):
     import rich
     from rich import print as rprint, table, box
+
+
     if hasattr(args, 'follow') and args.follow:
         import rich.live, time
         def get_table():
@@ -49,26 +56,39 @@ def show_log(args):
     else:
         rows, properties = generate_log_table(args) 
         import tabulate
+        from termcolor import cprint
+        #cprint(tabulate.tabulate(rows[-1000:]))
+        print(tabulate.tabulate(rows[-1000:]))
+        return
         #rprint(tabulate.tabulate(rows[-50:]))
-        from rich.console import Console
-        console = Console()
-        console.print(tabulate.tabulate(rows[-100:]), highlight=False)
+        #from rich.console import Console
+        #console = Console()
+        console.print(tabulate.tabulate(rows[-1000:]), highlight=False)
         #for row in rows:
         #   rprint(tabulate.tabulate(row))
         #rich.print(t)
 
+
 def generate_log_table(args):
     properties = ['id', 'status', 'started_at', 'finished_at', 'pid', 'running_length'] #jobname
+    # There's also blessings for bold, underline.
     def format_value(k, v):
         if k == 'status':
-            if v == 'OKC':
-                v = f'[green]{v}[/green]'
-            elif v == 'NEW':
-                v = f'[cyan]{v}[/cyan]'
-            elif v == 'SKP':
-                v = f'[bright_black]{v}[/bright_black]'
-            elif v == 'ERR':
-                v = f'[red]{v}[/red    ]'
+            if v == 'OK':
+                #v = f'[green]{v}[/green]'
+                v = colored(v, 'green') 
+            elif v == 'NW':
+                #v = f'[cyan]{v}[/cyan]'
+                v = colored(v, 'cyan', attrs=["blink"]) 
+            elif v == 'SK':
+                #v = f'[bright_black]{v}[/bright_black]'
+                v = colored(v, 'dark_grey')
+            elif v == 'ER':
+                #v = f'[red]{v}[/red    ]'
+                v = colored(v, 'red')
+            elif v == 'GO':
+                #v = f'[red]{v}[/red    ]'
+                v = colored(f'{v}', 'white', 'on_black', attrs=["blink"])  # reverse
         return str(v)
     rows = []
     for ji in procmanager.db.list_job_instances():

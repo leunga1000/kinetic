@@ -53,7 +53,7 @@ def insert_job_instance(_id, jobname):
     now_ts = datetime.now().timestamp()
 
     INSERT_JOB = f""" INSERT INTO job_instances VALUES (
-                ?,  ?, "NEW", ?, NULL, NULL 
+                ?,  ?, "NW", ?, NULL, NULL 
                                );"""
     conn, cur = get_cursor()
     cur.execute(INSERT_JOB, (_id, jobname, now_ts))
@@ -71,7 +71,7 @@ def list_job_instances(jobname=None):
         res = cur.execute(LIST_JOBS).fetchall()
 
     # print(res)
-    print(cur.description)
+    #print(cur.description)
     return (dict(r) for r in res)
 
 def append_log(_id, source, line):
@@ -117,7 +117,7 @@ def is_process_running(_id, pid):
     if process_utils.is_running(pid):
         running_result = True
     else:
-        update_job_instance(_id, status='LOST', finished_at=datetime.now().timestamp())
+        update_job_instance(_id, status='DC', finished_at=datetime.now().timestamp())
     return running_result
 
 def is_job_running(jobname):
@@ -125,7 +125,7 @@ def is_job_running(jobname):
        is really running, clears up if not """
     IS_JOB_RUNNING = f"""SELECT id, pid from job_instances where
          jobname = ? and
-         status = 'NEW' """
+         (status = 'NW' or status = 'GO') """
     conn, cur = get_cursor()
     print(IS_JOB_RUNNING)
     res = list(cur.execute(IS_JOB_RUNNING, (jobname,)).fetchall())

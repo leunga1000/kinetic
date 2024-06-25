@@ -33,21 +33,26 @@ class JobInstance:
 
     def complete(self):
         db.update_job_instance(_id=self.id,
-                               status='OKC', 
+                               status='OK', 
                                finished_at=datetime.now().timestamp())
     def error(self):
         db.update_job_instance(_id=self.id, 
-                               status='ERR', 
+                               status='ER', 
                                finished_at=datetime.now().timestamp())
     def cancel(self):
         db.update_job_instance(_id=self.id,
-                               status='CNC',
+                               status='CL',
                                finished_at=datetime.now().timestamp())
 
     def skip(self):
         db.update_job_instance(_id=self.id,
-                               status='SKP',
+                               status='SK',
                                finished_at=datetime.now().timestamp())
+
+    def go(self):
+        db.update_job_instance(_id=self.id,
+                               status='GO',
+                               )
 
     def save_pid(self, pid):
         db.update_job_instance(_id=self.id,
@@ -64,16 +69,16 @@ class JobInstance:
 def cleanup_jobs():
     boot_time = psutil.boot_time()  # TODO check when machine has timezones
     for ji in db.list_job_instances():
-        if ji['status'] == 'NEW':
+        if ji['status'] in ['NW', 'GO']:
             if ji['started_at'] < boot_time:
                 db.update_job_instance(_id = ji['id'], 
-                                       status = 'CNC',
+                                       status = 'CL',
                                        finished_at = boot_time)
             elif ji['pid']:
                 print(ji['pid'])
                 db.is_process_running(ji['id'], ji['pid'])
                
-
+'''
 def _stream_pipe(source, process):
     if source == 'stdout':
         pipe = process.stdout
@@ -82,12 +87,18 @@ def _stream_pipe(source, process):
     # need out and err versions really
     #while True:
     #    line = pipe.readline()
+    started_output = False
     for line in pipe:
         print(line)
+        if not started_output:
+            __m.job_instance.go()
+            started_output = True
+        
         append_log(__m.job_instance.id, source, line.decode())
     #if process.poll() is not None:
     #    return
     #    # time.sleep(1)
+'''
 
 
 def _can_run(job_def: dict):
@@ -118,12 +129,16 @@ def actually_run_job(jobname):
         args = ['bash', '-c']
     args.append(job_def['command'])
     th_out, th_err = None, None
+    started_output = False
     if job_def:
         ''' SO code, simpler  '''
         with subprocess.Popen(args, stdout=PIPE, stderr=STDOUT, text=True) as process:
             __m.process = process
             __m.job_instance.save_pid(process.pid)
             for line in process.stdout:
+                if not started_output:
+                    __m.job_instance.go()
+                    started_output = True
                 append_log(__m.job_instance.id, 'stdout', line)
         ''' Your code, bit naff, might have contention between stdout and stderr threads? '''
         '''

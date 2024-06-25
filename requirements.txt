@@ -4,4 +4,7 @@
 croniter
 toml
 psutil
+colorama
+termcolor
+#blessings
 #tornadopsutil
