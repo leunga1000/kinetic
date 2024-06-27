@@ -42,10 +42,10 @@ def start_server_socketify_is_this_needed(web_app: 'App'):
     start_server(web_app=web_app)
 
 def start_server(web_app=None, args: 'argparseNamespace'=None):  # web_app this is to pass to the socketify initialisation interface
-    # web_app is positional for socketify
-    start_scheduler()
-    #start_web_server(web_app)
-    start_web_server(web_app, args)
+        # web_app is positional for socketify
+        start_scheduler()
+        #start_web_server(web_app)
+        start_web_server(web_app, args)
 
 # Web server - bottle.py does stop on ctrl c but takes a very long time.
 # import signal, sys

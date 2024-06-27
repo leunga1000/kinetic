@@ -3,6 +3,7 @@ import platform
 import signal
 import sys
 from copy import copy
+import os
 from subprocess import TimeoutExpired, PIPE, STDOUT
 from threading import Thread
 import time
@@ -57,6 +58,10 @@ class JobInstance:
     def save_pid(self, pid):
         db.update_job_instance(_id=self.id,
                                pid=pid)
+
+    def save_parent_pid(self, parent_pid):
+        db.update_job_instance(_id=self.id,
+                               parent_pid=parent_pid)
     #def check_process(self):
     #  NOTE if you uncomment this remember to assign the process to
     #    this job instance. but i dont think you should need this method.
@@ -66,8 +71,46 @@ class JobInstance:
     #    if self.process and self.process.pid:
     #        return process_utils.is_running(self.process.pid)
 
+def wait_pid(pid):
+    if not pid:
+        return
+    try:
+        psutil.Process(pid).wait()
+    except Exception as e:
+        print(e)
+
+def clear_zombie(parent_pid, system_pids=None):
+    if not parent_pid:
+        return
+
+    if system_pids and parent_pid not in system_pids: 
+        return
+
+    try:
+        parent_process = psutil.Process(parent_pid)
+    except Exception as e:
+        print(f'Couldn\'t get process for pid {parent_pid}')
+        return
+    pparents = []
+    pp = parent_process.parent()
+    if pp:
+        pparents.append(pp)
+        ppp = pp.parent()
+        if ppp:
+            pparents.append(ppp)
+    for p in [parent_process, *pparents, *parent_process.children()]:
+        print(p)
+        print(p.status())
+        print('poll em all')
+        print(p.is_running())
+        if p.status() == psutil.STATUS_ZOMBIE:
+            print('polling zombie')
+            p.is_running()
+
 def cleanup_jobs():
+    return
     boot_time = psutil.boot_time()  # TODO check when machine has timezones
+    system_pids = psutil.pids()
     for ji in db.list_job_instances():
         if ji['status'] in ['NW', 'GO']:
             if ji['started_at'] < boot_time:
@@ -77,6 +120,7 @@ def cleanup_jobs():
             elif ji['pid']:
                 print(ji['pid'])
                 db.is_process_running(ji['id'], ji['pid'])
+        clear_zombie(ji['parent_pid'], system_pids)
                
 '''
 def _stream_pipe(source, process):
@@ -130,21 +174,38 @@ def actually_run_job(jobname):
     args.append(job_def['command'])
     th_out, th_err = None, None
     started_output = False
+    parent_pid = os.getpid()
+    __m.job_instance.save_parent_pid(parent_pid)
     if job_def:
         ''' SO code, simpler  '''
         with subprocess.Popen(args, stdout=PIPE, stderr=STDOUT, text=True) as process:
             __m.process = process
+            process_pid = process.pid
             __m.job_instance.save_pid(process.pid)
             for line in process.stdout:
                 if not started_output:
                     __m.job_instance.go()
                     started_output = True
                 append_log(__m.job_instance.id, 'stdout', line)
+
+            print(process)
+            print('arj pid: %s' % process_pid)
+            p_res = process.poll()
+            print(p_res) 
+
+        if process.returncode == 0:
+            __m.job_instance.complete()
+        else:
+            __m.job_instance.error()
+        print(f'waiting for {parent_pid} to clear zombie')
+        wait_pid(parent_pid)
+        clear_zombie(parent_pid)  # TODO might not need this
         ''' Your code, bit naff, might have contention between stdout and stderr threads? '''
         '''
         process = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
         __m.process = process
-        __m.job_instance.save_pid(process.pid)
+        process_pid = process.pid
+        __m.job_instance.save_pid(process_pid)
         th_out = Thread(target=_stream_pipe, args=['stdout', process], daemon=True)
         th_out.start()
         th_err = Thread(target=_stream_pipe, args=['stderr', process], daemon=True)
@@ -159,17 +220,11 @@ def actually_run_job(jobname):
                 break
             else:
                 time.sleep(1)
+        clear_zombie(process_pid)
         
         # for (o, e) in stream_from_process(process):
         #     print(o, e)
         '''
-        print(process)
-        print(process.pid)
-
-        if process.returncode == 0:
-            __m.job_instance.complete()
-        else:
-            __m.job_instance.error()
     '''
     if th_out:
         th_out.join()
@@ -207,4 +262,8 @@ def run_job(jobname):
     args.append(jobname)  # i.e. pm-cli run JOBNAME
     # args = [sys.executable] + args
     print(args)
-    subprocess.Popen(args, cwd=config.RUN_DIR)
+    try:
+        p = subprocess.Popen(args, cwd=config.RUN_DIR) #, check=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    except Exception as e:
+        print(e)
+

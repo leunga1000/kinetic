@@ -6,21 +6,26 @@ from procmanager.job_instance import run_job
 from procmanager import db
 import logging
 
+logging.basicConfig(format='%(asctime)s %(message)s')
 log = logging.Logger('PythonProcessRunner')
+#logging.basicConfig(format="%(asctime)s - %(levelname)s : %(message)s",
+#    datefmt="%m/%d/%y %I:%M:%S %p",)
 
 class Job:
     def __init__(self, jobname, schedule, command, givewayto=None, comments=None, **args):
         self.schedule = schedule
         if not croniter.is_valid(schedule):
-            log.error('Invalid cron schedule! ' + schedule + ' for ' + jobname + '. Not scheduling.')
+            log.error('Couldn''t parse cron schedule! "' + schedule + '" for ' + jobname + '. Not scheduling.')
             self.schedule = None
 
         self.jobname = jobname
         self.command = command
         self.givewayto = givewayto
         self.comments = comments
-        log.warning(f"Unused arguments {args} for {jobname}")
+        log.debug(f"Unused arguments {args} for {jobname}")
+        self.running_jobs = []
         self.play()
+        'THIS MAY BLOCK HERE'
 
     def get_next_time(self):
         if not self.schedule:
@@ -34,12 +39,13 @@ class Job:
         next_time = self.get_next_time()
         if not next_time:
             return
-        wait_time = (next_time - datetime.now()).seconds
+        wait_time = (next_time - datetime.now()).total_seconds()
         self.timer = Timer(wait_time, self.run_instance, args=None, kwargs=None)
+        self.timer.daemon = True
         self.timer.start()
 
     def pause(self):
-        self.timer.cancel()
+        self.timer.cancel() if self.timer else None
 
     def play(self):
         self._schedule_next()
