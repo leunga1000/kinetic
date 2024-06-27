@@ -61,6 +61,8 @@ class Job:
             run_job(self.jobname)
         finally:
             time.sleep(1)  # croniter resolution seems to be one second
+            #t = Thread(target=self._schedule_next, daemon=True)
+            #t.start()
             self._schedule_next()
 
 

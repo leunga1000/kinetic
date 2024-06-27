@@ -20,8 +20,7 @@ def create_db(conn, cur):
                  status VARCHAR,
                  started_at INT,
                  finished_at INT,
-                 pid INT,
-                 parent_pid INT
+                 pid INT
                  );"""
     JI_LOGS = """Create table if not exists ji_logs (
                          id VARCHAR, 
@@ -42,6 +41,7 @@ class C:
 
 c = C()
 
+
 def get_cursor():
     #new_db = os.path.exists(DB_PATH)
     #conn = sqlite3.connect(DB_PATH, isolation_level=None) # autocommit
@@ -53,11 +53,15 @@ def get_cursor():
     conn = sqlite3.connect(DB_PATH, isolation_level=None, timeout=10) # autocommit
     return conn, conn.cursor()
 
+if not os.path.exists(DB_PATH):
+    conn, cursor = get_cursor()
+    create_db(conn, cursor)
+
 def insert_job_instance(_id, jobname):
     now_ts = datetime.now().timestamp()
 
     INSERT_JOB = f""" INSERT INTO job_instances VALUES (
-                ?,  ?, "NW", ?, NULL, NULL, NULL
+                ?,  ?, "NW", ?, NULL, NULL 
                                );"""
     conn, cur = get_cursor()
     cur.execute(INSERT_JOB, (_id, jobname, now_ts))
@@ -127,16 +131,16 @@ def is_process_running(_id, pid):
 def is_job_running(jobname):
     """ Checks db if process running, then verifies if pid
        is really running, clears up if not """
-    IS_JOB_RUNNING = f"""SELECT id, pid, parent_pid from job_instances where
+    IS_JOB_RUNNING = f"""SELECT id, pid from job_instances where
          jobname = ? and
          (status = 'NW' or status = 'GO') """
     conn, cur = get_cursor()
     print(IS_JOB_RUNNING)
     res = list(cur.execute(IS_JOB_RUNNING, (jobname,)).fetchall())
     running_result = False
-    for _id, pid, parent_pid in res:
+    for _id, pid in res:
         if is_process_running(_id, pid):
             running_result = True
-            poll_pid(parent_pid)  # poll parent to avoid bob/zombies.
+            #poll_pid(parent_pid)  # poll parent to avoid bob/zombies.
     print(running_result)
     return running_result

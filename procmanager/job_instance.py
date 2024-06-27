@@ -59,9 +59,6 @@ class JobInstance:
         db.update_job_instance(_id=self.id,
                                pid=pid)
 
-    def save_parent_pid(self, parent_pid):
-        db.update_job_instance(_id=self.id,
-                               parent_pid=parent_pid)
     #def check_process(self):
     #  NOTE if you uncomment this remember to assign the process to
     #    this job instance. but i dont think you should need this method.
@@ -175,7 +172,6 @@ def actually_run_job(jobname):
     th_out, th_err = None, None
     started_output = False
     parent_pid = os.getpid()
-    __m.job_instance.save_parent_pid(parent_pid)
     if job_def:
         ''' SO code, simpler  '''
         with subprocess.Popen(args, stdout=PIPE, stderr=STDOUT, text=True) as process:
@@ -199,6 +195,7 @@ def actually_run_job(jobname):
             __m.job_instance.error()
         print(f'waiting for {parent_pid} to clear zombie')
         wait_pid(parent_pid)
+        #wait_pid(process_pid)
         clear_zombie(parent_pid)  # TODO might not need this
         ''' Your code, bit naff, might have contention between stdout and stderr threads? '''
         '''
@@ -236,8 +233,12 @@ def actually_run_job(jobname):
 
 def _signal_handler(sig, frame):
     # global process
-    __m.process.kill()
-    __m.job_instance.cancel()
+    if __m.process and __m.process.pid:
+        ppid = psutil.Process(__m.process.pid).ppid() 
+        if ppid == os.getpid():
+            __m.process.kill()
+            print('cancelling' )
+            __m.job_instance.cancel()
     sys.exit(1)
 
 
