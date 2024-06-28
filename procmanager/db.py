@@ -67,17 +67,17 @@ def insert_job_instance(_id, jobname):
     cur.execute(INSERT_JOB, (_id, jobname, now_ts))
     conn.commit()    
 
-def list_job_instances(jobname=None):
-    LIST_JOBS = f"""select *, coalesce(finished_at, strftime('%s', 'now')) - started_at as running_length from job_instances"""
+def list_job_instances(jobname=None, top_down=False):
+    by_jobname = 'where jobname = ?' if jobname else ''
+    order_by = 'order by started_at desc' if top_down else ''
+    LIST_JOBS = f"""select *, coalesce(finished_at, strftime('%s', 'now')) - started_at as running_length from job_instances {by_jobname} {order_by}"""
     conn, _ = get_cursor()
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     if jobname:
-        LIST_JOBS += f""" where jobname = ? """
         res = cur.execute(LIST_JOBS, jobname).fetchall()
     else:
         res = cur.execute(LIST_JOBS).fetchall()
-
     # print(res)
     #print(cur.description)
     return (dict(r) for r in res)

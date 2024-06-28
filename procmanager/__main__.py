@@ -31,6 +31,10 @@ just_fix_windows_console()
 from termcolor import colored
 # There's also blessings for bold, underline.
 
+def show_log_app(args):
+    from procmanager.prompt_view import run_app
+    run_app()
+
 def show_log(args):
     import rich
     from rich import print as rprint, table, box
@@ -145,6 +149,9 @@ def main():
     parser_log = subparsers.add_parser('ll', help="log in live mode")
     parser_log.add_argument('follow', action='store_true', default=True)
     parser_log.set_defaults(func=show_log, sub_parser=parser_log)
+    parser_log = subparsers.add_parser('lll', help="log in live mode")
+    parser_log.add_argument('follow', action='store_true', default=True)
+    parser_log.set_defaults(func=show_log_app, sub_parser=parser_log)
     parser_reload = subparsers.add_parser('reload')
     parser_reload.set_defaults(func=reload, sub_parser=parser_reload)
     #foo_parser = subparsers.add_parser('foo')

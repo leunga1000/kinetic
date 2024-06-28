@@ -72,7 +72,7 @@ def wait_pid(pid):
     if not pid:
         return
     try:
-        psutil.Process(pid).wait()
+        psutil.Process(pid).wait(timeout=1)
     except Exception as e:
         print(e)
 
