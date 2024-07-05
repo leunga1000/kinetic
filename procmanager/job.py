@@ -2,6 +2,7 @@ import time
 from threading import Timer
 from croniter import croniter
 from datetime import datetime
+import dateparser
 from procmanager.job_instance import run_job
 from procmanager import db
 import logging
@@ -12,7 +13,7 @@ log = logging.Logger('PythonProcessRunner')
 #    datefmt="%m/%d/%y %I:%M:%S %p",)
 
 class Job:
-    def __init__(self, jobname, schedule, command, givewayto=None, comments=None, **args):
+    def __init__(self, jobname, schedule, command, givewayto=None, comments=None, timeout=None, **args):
         self.schedule = schedule
         if not croniter.is_valid(schedule):
             log.error('Couldn''t parse cron schedule! "' + schedule + '" for ' + jobname + '. Not scheduling.')
@@ -22,6 +23,7 @@ class Job:
         self.command = command
         self.givewayto = givewayto
         self.comments = comments
+        self.timeout = timeout # see job_instance.py:get_timeout_dt for conversion, can validate it here with that function
         log.debug(f"Unused arguments {args} for {jobname}")
         self.running_jobs = []
         self.play()

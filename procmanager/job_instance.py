@@ -9,10 +9,12 @@ from threading import Thread
 import time
 from datetime import datetime
 import psutil
+import dateparser
 from procmanager import db
 from procmanager.db import append_log
 from procmanager import config
 from procmanager import process_utils
+
 
 JOB_DEFS = config.load_job_defs()
 JOBS = {"hello": "echo hello",
@@ -53,6 +55,17 @@ class JobInstance:
     def go(self):
         db.update_job_instance(_id=self.id,
                                status='GO',
+                               )
+
+    def go_i(self):
+        db.update_job_instance(_id=self.id,
+                               status='GO!',
+                               )
+
+    def timed_out(self):
+        db.update_job_instance(_id=self.id,
+                               status='TI',
+                               finished_at=datetime.now().timestamp(),
                                )
 
     def save_pid(self, pid):
@@ -105,11 +118,10 @@ def clear_zombie(parent_pid, system_pids=None):
             p.is_running()
 
 def cleanup_jobs():
-    return
     boot_time = psutil.boot_time()  # TODO check when machine has timezones
     system_pids = psutil.pids()
     for ji in db.list_job_instances():
-        if ji['status'] in ['NW', 'GO']:
+        if ji['status'] in ['NW', 'GO', 'GO!']:
             if ji['started_at'] < boot_time:
                 db.update_job_instance(_id = ji['id'], 
                                        status = 'CL',
@@ -117,9 +129,26 @@ def cleanup_jobs():
             elif ji['pid']:
                 print(ji['pid'])
                 db.is_process_running(ji['id'], ji['pid'])
-        clear_zombie(ji['parent_pid'], system_pids)
+        clear_zombie(ji['pid'], system_pids)
+
+
+def get_timeout_dt(timeout):
+    """ Is dynamic - returns next timeout datetime for timeout expression """
+    if not timeout:
+        return None
+
+    """ Default to seconds """
+    if timeout and type(timeout) == int or timeout.isnumeric():
+        timeout = f'in {timeout} seconds'
+    elif not timeout.lower().startswith('in'):
+        timeout = f'in {timeout}'
+    try:
+        return dateparser.parse(timeout)
+    except Exception as e:
+        print(e)
+        print(f'Couldn\'t parser timeout expression {timeout}')
+
                
-'''
 def _stream_pipe(source, process):
     if source == 'stdout':
         pipe = process.stdout
@@ -132,14 +161,17 @@ def _stream_pipe(source, process):
     for line in pipe:
         print(line)
         if not started_output:
-            __m.job_instance.go()
+            if source =='stdout':
+                __m.job_instance.go()
+            elif source =='stderr':
+                __m.job_instance.go_i()
             started_output = True
         
         append_log(__m.job_instance.id, source, line.decode())
+        #append_log(__m.job_instance.id, 'stdout', line)
     #if process.poll() is not None:
     #    return
     #    # time.sleep(1)
-'''
 
 
 def _can_run(job_def: dict):
@@ -155,6 +187,7 @@ def actually_run_job(jobname):
 
     print(JOB_DEFS)
     job_def = JOB_DEFS[jobname]
+    timeout_dt = get_timeout_dt(job_def.get('timeout'))
     # global process
     __m.job_instance = JobInstance(jobname)
 
@@ -174,6 +207,7 @@ def actually_run_job(jobname):
     parent_pid = os.getpid()
     if job_def:
         ''' SO code, simpler  '''
+        '''
         with subprocess.Popen(args, stdout=PIPE, stderr=STDOUT, text=True) as process:
             __m.process = process
             process_pid = process.pid
@@ -197,8 +231,10 @@ def actually_run_job(jobname):
         wait_pid(parent_pid)
         #wait_pid(process_pid)
         clear_zombie(parent_pid)  # TODO might not need this
-        ''' Your code, bit naff, might have contention between stdout and stderr threads? '''
         '''
+
+
+        ''' Your code, bit naff, might have contention between stdout and stderr threads? '''
         process = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
         __m.process = process
         process_pid = process.pid
@@ -207,27 +243,44 @@ def actually_run_job(jobname):
         th_out.start()
         th_err = Thread(target=_stream_pipe, args=['stderr', process], daemon=True)
         th_err.start()
+        timed_out = False
         while True:
             # while (so := process.stdout.readline()):
             #     print(so)
             # while (se := process.stderr.readline()):
             #     print(se)
-            if process.poll() is not None:
+            pres = process.poll()
+            if pres is not None:
+                print(pres)
                 time.sleep(0.5)
                 break
-            else:
-                time.sleep(1)
-        clear_zombie(process_pid)
+
+            if timeout_dt and (datetime.now() > timeout_dt):
+                timed_out = True
+                process.kill()
+
+            time.sleep(1)
+          
+
+        if timed_out:
+            __m.job_instance.timed_out()
+        elif process.returncode == 0:
+            __m.job_instance.complete()
+        else:
+            __m.job_instance.error()
+
+        print(f'waiting for {parent_pid} to clear zombie')
+        wait_pid(parent_pid)
+        #wait_pid(process_pid)
+        clear_zombie(parent_pid)  # TODO might not need this
+        #clear_zombie(process_pid)
         
         # for (o, e) in stream_from_process(process):
         #     print(o, e)
-        '''
-    '''
     if th_out:
         th_out.join()
     if th_err:
         th_err.join()
-    '''
     # db.list_job_instances()
 
 

@@ -67,10 +67,13 @@ def insert_job_instance(_id, jobname):
     cur.execute(INSERT_JOB, (_id, jobname, now_ts))
     conn.commit()    
 
-def list_job_instances(jobname=None, top_down=False):
+def list_job_instances(jobname=None, top_down=False, limit=None, offset=None):
     by_jobname = 'where jobname = ?' if jobname else ''
     order_by = 'order by started_at desc' if top_down else ''
-    LIST_JOBS = f"""select *, coalesce(finished_at, strftime('%s', 'now')) - started_at as running_length from job_instances {by_jobname} {order_by}"""
+    limit_sql = f'limit {limit}' if limit is not None else ''
+    offset_sql = f'offset {offset}' if offset is not None else ''
+    LIST_JOBS = f"""select *, coalesce(finished_at, strftime('%s', 'now')) - started_at as running_length from job_instances {by_jobname} {order_by} {limit_sql} {offset_sql}"""
+    #print(LIST_JOBS)
     conn, _ = get_cursor()
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
@@ -125,7 +128,7 @@ def is_process_running(_id, pid):
     if process_utils.is_running(pid):
         running_result = True
     else:
-        update_job_instance(_id, status='DC', finished_at=datetime.now().timestamp())
+        update_job_instance(_id, status='EX', finished_at=datetime.now().timestamp())
     return running_result
 
 def is_job_running(jobname):

@@ -36,6 +36,7 @@ def show_log_app(args):
     run_app()
 
 def show_log(args):
+    from procmanager.tui_helpers import generate_log_table
     import rich
     from rich import print as rprint, table, box
 
@@ -43,13 +44,13 @@ def show_log(args):
     if hasattr(args, 'follow') and args.follow:
         import rich.live, time
         def get_table():
-            rows, properties = generate_log_table(args) 
+            rows, properties = generate_log_table() 
             t = table.Table(box=box.MINIMAL_HEAVY_HEAD, expand=True)
             for p in properties:
                 t.add_column(p)
             for row in rows[-25:]:
                 #rprint(*row)
-                t.add_row(*row)
+                t.add_row(*[str(r) for r in row])
             return t
         t = get_table()
         with rich.live.Live(t, refresh_per_second=0.25) as live_table:
@@ -58,7 +59,7 @@ def show_log(args):
                 time.sleep(4)
                 t = get_table()
     else:
-        rows, properties = generate_log_table(args) 
+        rows, properties = generate_log_table() 
         import tabulate
         from termcolor import cprint
         #cprint(tabulate.tabulate(rows[-1000:]))
@@ -72,7 +73,7 @@ def show_log(args):
         #   rprint(tabulate.tabulate(row))
         #rich.print(t)
 
-
+""" TODO remove, moved to tui_helpers.py 
 def generate_log_table(args):
     properties = ['id', 'status', 'started_at', 'finished_at', 'pid', 'running_length'] #jobname
     # There's also blessings for bold, underline.
@@ -92,7 +93,7 @@ def generate_log_table(args):
                 v = colored(v, 'red')
             elif v == 'GO':
                 #v = f'[red]{v}[/red    ]'
-                v = colored(f'{v}', 'white', 'on_black', attrs=["blink"])  # reverse
+                v = colored(f'{v}', 'blue', 'on_black', attrs=["blink"])  # reverse
         return str(v)
     rows = []
     for ji in procmanager.db.list_job_instances():
@@ -102,6 +103,7 @@ def generate_log_table(args):
         #print(*list(ji.values()))
         rows.append([format_value(k,v) for k,v in ji.items()])
     return rows, properties 
+"""
 
 
 
