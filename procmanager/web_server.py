@@ -1,6 +1,6 @@
 # webapp.py - example from RealPython https://realpython.com/python-http-server/ with some tweaks for updates
 
-from socketify import App, MiddlewareRouter
+#from socketify import App, MiddlewareRouter
 from procmanager import config
 
 async def get_user(authorization):
@@ -38,13 +38,14 @@ async def runjob(res, req, jobname):
     res.end('jobname  ab' + jobname + ' ' + str(req.user))
 
 
-def make_app(app: App):
+def make_app(app: 'App'):
     app.get("/", lambda res, req: res.end("Hello World socketify from Python!"))
     auth_router = MiddlewareRouter(app, auth)
     auth_router.get("/runjob/:jobname", runjob)
     # app.listen(3000, lambda config: print("Listening on port http://localhost:%d now\n" % config.port))
 
 def start_web_server(web_app=None, args: 'argparse Namespace'=None):
+    return
     port = args.port or 8737
     app = web_app or App()
     make_app(app)

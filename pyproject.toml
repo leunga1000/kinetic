@@ -58,3 +58,15 @@ pm-cli = "procmanager.main:main"
 [tool.setuptools]
 #py-modules = ["src.procmanager"]
 packages = ["procmanager"]
+
+
+#[tool.cxfreeze]
+#executables = [
+#   {script = "procmanager/__main__.py", base = "gui"}
+#]
+##target_name = "pm-cli"
+
+#[tool.cxfreeze.build_exe]
+#target_name = "pm-cli"
+#excludes  = []
+#zip-include-packages = ["*"]

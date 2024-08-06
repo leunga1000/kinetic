@@ -35,6 +35,9 @@ def load_job_defs():
                 d = json.load(fh)
             elif path.endswith('toml'):
                 d = toml.load(fh)
+            else:
+                print(f'Extension {path} not yet implemented')
+                continue
             # yaml, ini
         # merge dictionaries
         job_defs = dict(list(job_defs.items()) + list(d.items()))
