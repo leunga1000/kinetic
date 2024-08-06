@@ -47,6 +47,8 @@ class Scheduler:
 
         self.job_defs = load_job_defs()
         for jobname, job_def in self.job_defs.items():
+            if not job_def.get('schedule'):
+                job_def['schedule'] = ''
             job =  Job(jobname=jobname, **job_def)
             self.jobs[jobname] = job
         
