@@ -30,9 +30,13 @@ __m = Box()
 
 
 class JobInstance:
-    def __init__(self, jobname):
+    def __init__(self, jobname, _id=None):
         self.jobname = jobname
-        self.id = db.create_job_instance(jobname)
+
+        if _id:
+            self.id = _id
+        else:
+            self.id = db.create_job_instance(jobname)
 
     def complete(self):
         db.update_job_instance(_id=self.id,
@@ -66,6 +70,13 @@ class JobInstance:
         db.update_job_instance(_id=self.id,
                                status='TI',
                                finished_at=datetime.now().timestamp(),
+                               )
+
+    def stopped_by_boot(self, boot_time):
+        boot_time = boot_time or datetime.now().timestamp()
+        db.update_job_instance(_id=self.id,
+                               status='SB',
+                               finished_at=boot_time,
                                )
 
     def save_pid(self, pid):
@@ -123,9 +134,11 @@ def cleanup_jobs():
     for ji in db.list_job_instances():
         if ji['status'] in ['NW', 'GO', 'GO!']:
             if ji['started_at'] < boot_time:
-                db.update_job_instance(_id = ji['id'], 
-                                       status = 'CL',
-                                       finished_at = boot_time)
+                ji_object = JobInstance(ji.get('jobname'), ji['id'])
+                ji_object.stopped_by_boot(boot_time)
+                #db.update_job_instance(_id = ji['id'], 
+                #                       status = 'SB',
+                #                       finished_at = boot_time)
             elif ji['pid']:
                 print(ji['pid'])
                 db.is_process_running(ji['id'], ji['pid'])

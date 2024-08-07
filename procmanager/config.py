@@ -9,7 +9,7 @@ ACCOUNTS = {'example1': {'api_key': '13131'}}
 RUN_DIR = os.path.expanduser('~')  # os.path.dirname(os.path.realpath(__file__)) 
 # JOBS CONFIG
 
-BASE_PATH = os.path.expanduser(os.path.join('~', 'process_runner_conf'))
+BASE_PATH = os.path.expanduser(os.path.join('~', '.pm_dir'))
 os.makedirs(BASE_PATH, exist_ok=True)
 JOB_DEFS_PATH = os.path.join(BASE_PATH, 'job_defs')
 os.makedirs(JOB_DEFS_PATH, exist_ok=True)
