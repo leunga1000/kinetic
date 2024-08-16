@@ -21,8 +21,6 @@ Run particular job by name
 
 dev mode:
 ---------
-python -m socketify server:start_server --port 3000  --reload
-
 This is mostly intended to run in user space.
 
 build package:
@@ -40,6 +38,7 @@ Alternatives:
 - Cron (obviously!)
 - Cronitor - email and status service, keep using cron jobs.
 - Python Scheduler, APScheduler
+- systemd timers
 - jobflow, jobflow remote
 - AWS Lambda, Step Functions and EventBridge
     - immense fun and basically free for small tasks, watch out for storage and bandwidth

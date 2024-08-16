@@ -1,6 +1,6 @@
 #bottle
 # apscheduler not wokring?
--e ../socketify.py
+#-e ../socketify.py
 croniter
 toml
 psutil

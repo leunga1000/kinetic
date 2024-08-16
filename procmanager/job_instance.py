@@ -61,9 +61,9 @@ class JobInstance:
                                status='GO',
                                )
 
-    def go_i(self):
+    def had_errors(self):
         db.update_job_instance(_id=self.id,
-                               status='GO!',
+                               had_errors=True,
                                )
 
     def timed_out(self):
@@ -132,7 +132,7 @@ def cleanup_jobs():
     boot_time = psutil.boot_time()  # TODO check when machine has timezones
     system_pids = psutil.pids()
     for ji in db.list_job_instances():
-        if ji['status'] in ['NW', 'GO', 'GO!']:
+        if ji['status'] in ['NW', 'GO']:
             if ji['started_at'] < boot_time:
                 ji_object = JobInstance(ji.get('jobname'), ji['id'])
                 ji_object.stopped_by_boot(boot_time)
@@ -171,14 +171,16 @@ def _stream_pipe(source, process):
     #while True:
     #    line = pipe.readline()
     started_output = False
+    has_errors = False
     for line in pipe:
         print(line)
         if not started_output:
-            if source =='stdout':
-                __m.job_instance.go()
-            elif source =='stderr':
-                __m.job_instance.go_i()
+            __m.job_instance.go()
             started_output = True
+
+        #if source =='stdout':
+        if not has_errors and source =='stderr':
+            __m.job_instance.had_errors()
         
         append_log(__m.job_instance.id, source, line.decode())
         #append_log(__m.job_instance.id, 'stdout', line)

@@ -7,9 +7,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "procmanager"
-version = "0.1.3"
+version = "0.1.5"
 dependencies = [
-    "socketify",
     "croniter",
     "toml",
 ]

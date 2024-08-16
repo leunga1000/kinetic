@@ -21,6 +21,7 @@ def create_db(conn, cur):
                  started_at INT,
                  finished_at INT,
                  pid INT
+                 had_errors INT,
                  );"""
     JI_LOGS = """Create table if not exists ji_logs (
                          id VARCHAR, 
@@ -61,7 +62,7 @@ def insert_job_instance(_id, jobname):
     now_ts = datetime.now().timestamp()
 
     INSERT_JOB = f""" INSERT INTO job_instances VALUES (
-                ?,  ?, "NW", ?, NULL, NULL 
+                ?,  ?, "NW", ?, NULL, NULL, NULL
                                );"""
     conn, cur = get_cursor()
     cur.execute(INSERT_JOB, (_id, jobname, now_ts))
@@ -88,6 +89,10 @@ def list_job_instances(jobname=None, top_down=False, limit=None, offset=None):
 def append_log(_id, source, line):
     log_name = _id + '.log'
     path = os.path.join(LOG_DIR, log_name)
+
+    if source == 'stderr':
+        line = f'ERROR: {line}'
+
     with open(path, 'a') as f:
         f.write(line)
     # this could be slow, might want to put it in a file instead.
