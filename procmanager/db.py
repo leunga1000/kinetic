@@ -20,8 +20,8 @@ def create_db(conn, cur):
                  status VARCHAR,
                  started_at INT,
                  finished_at INT,
-                 pid INT
-                 had_errors INT,
+                 pid INT,
+                 had_errors INT
                  );"""
     JI_LOGS = """Create table if not exists ji_logs (
                          id VARCHAR, 
