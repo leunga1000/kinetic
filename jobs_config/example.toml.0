@@ -66,14 +66,23 @@ timeout=2000
 
 ## sync perfect quality to here and vice versa - make sure your ssh keys are set up and pq is set up in .ssh/config and alldata directory is created, and data is symlinked in alldata under the servername locally on both servers
 ## delete to perform deletions if e.g. pq- directories are removed. so backups will need to take place separately - is your restic folder getting bigger?
-[sync-to-perfect-quality]
+[sync-from-perfect-quality]
 schedule="58,28 * * * *"
 command="rsync -av pq:~/projects/measure-pain/data  /home/user/projects/measure-pain/alldata/perfectquality/ --delete"
 
-[sync-from-perfect-quality]
+[sync-to-perfect-quality]
 schedule="57,27 * * * *"
 command="rsync -av /home/user/projects/measure-pain/data pq:~/projects/measure-pain/alldata/ssdnodes/   --delete"
+
+[sync-restic-to-pq]
+#schedule="0 1,9,17 * * *"
+command="rsync -av /srv/restic-repo/ pq:~/ncbackup/ --delete"
 
 [sync-aws-s3]
 schedule="50 0,8,16 * * *"
 command="/home/user/projects/measure-pain/sync/sync-s3.sh"
+
+[skynews-rss]
+#schedule="05 * * * *"
+command="cd /home/user/projects/news-scraping/ && ./skyrss.py"
+

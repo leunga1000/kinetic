@@ -66,7 +66,7 @@ def generate_log_table(top_down=False, ptk=False, limit=None, offset=None):
     rows = []
     for ji in procmanager.db.list_job_instances(top_down=top_down, limit=limit, offset=offset):
         if ji.get('had_errors'):
-            ji['id'] = "ER:" + ji['id']
+            ji['id'] = "ER: " + ji['id']
         ji = {k:v for k, v in ji.items() if k in properties}
         ji['started_at'] = datetime.fromtimestamp(ji['started_at']).strftime('%Y-%m-%d %H:%M:%S') if ji['started_at'] else None
         ji['finished_at'] = datetime.fromtimestamp(ji['finished_at']).strftime('%Y-%m-%d %H:%M:%S') if ji['finished_at'] else None
