@@ -18,7 +18,13 @@ DYN_CONFIG_FILE = os.path.join(JOB_DEFS_PATH, 'dyn_config.toml')
 LOG_DIR = os.path.join(BASE_PATH, 'logs')
 os.makedirs(LOG_DIR, exist_ok=True)
 
-CONFIG_FILES = glob.glob(f'{JOB_DEFS_PATH}/**', recursive=True)
+def config_files():
+    # CONFIG_FILES = 
+    return glob.glob(f'{JOB_DEFS_PATH}/**', recursive=True)
+
+def job_defs_path():
+    return JOB_DEFS_PATH
+
 # DB
 DB_FILENAME = 'ppr.db'
 DB_PATH = os.path.join(BASE_PATH, DB_FILENAME)
@@ -26,7 +32,7 @@ DB_PATH = os.path.join(BASE_PATH, DB_FILENAME)
 def load_job_defs():
     # returns dictionary job defs
     job_defs = {}
-    for path in CONFIG_FILES:
+    for path in config_files():
         print(path)
         if not os.path.isfile(path):
             continue

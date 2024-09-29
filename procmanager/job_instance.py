@@ -16,7 +16,6 @@ from procmanager import config
 from procmanager import process_utils
 
 
-JOB_DEFS = config.load_job_defs()
 JOBS = {"hello": "echo hello",
         "sleep": "sleep 10",
         "sleeprepeat": "sleep 2; echo hello; sleep 2; echo hello2",
@@ -196,10 +195,24 @@ def _can_run(job_def: dict):
     return True
 
 
+def _run_following_jobs(follow_on_type, prev_job_id, prev_job_def):
+    """ 
+    Run next jobs if there was no error.. 
+    'next' if program exited without error 
+    and 'error' if it did"""
+
+    following_jobs = prev_job_def.get(follow_on_type)
+    if isinstance(following_jobs, str):
+        run_job(following_jobs)
+    elif following_jobs is not None:
+        for job in following_jobs:
+            run_job(job)
+
 def actually_run_job(jobname):
     # close cleanly on sigint
     signal.signal(signal.SIGINT, _signal_handler)
 
+    JOB_DEFS = config.load_job_defs()
     print(JOB_DEFS)
     job_def = JOB_DEFS[jobname]
     timeout_dt = get_timeout_dt(job_def.get('timeout'))
@@ -279,10 +292,13 @@ def actually_run_job(jobname):
 
         if timed_out:
             __m.job_instance.timed_out()
+            _run_following_jobs('error', __m.job_instance.id, job_def)
         elif process.returncode == 0:
             __m.job_instance.complete()
+            _run_following_jobs('next', __m.job_instance.id, job_def)
         else:
             __m.job_instance.error()
+            _run_following_jobs('error', __m.job_instance.id, job_def)
 
         print(f'waiting for {parent_pid} to clear zombie')
         wait_pid(parent_pid)
@@ -290,13 +306,14 @@ def actually_run_job(jobname):
         clear_zombie(parent_pid)  # TODO might not need this
         #clear_zombie(process_pid)
         
-        # for (o, e) in stream_from_process(process):
-        #     print(o, e)
-    if th_out:
-        th_out.join()
-    if th_err:
-        th_err.join()
-    # db.list_job_instances()
+        if th_out:
+            th_out.join()
+        if th_err:
+            th_err.join()
+
+
+
+    
 
 
 def _signal_handler(sig, frame):

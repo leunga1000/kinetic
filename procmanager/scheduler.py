@@ -10,12 +10,14 @@ class Scheduler:
         self.job_defs = {}
         self.jobs = {}
         self.reload()
-    
+   
+    """ TODO DELETE
     def make_job(self, jobname, schedule, command, givewayto):
         self.job_defs[jobname] = {'jobname': jobname,
                                   'schedule': schedule,
                                   'command': command,
                                   'givewayto': givewayto}
+                                  #TODO what about new props such as next
         if jobname in self.jobs:
             existing_job =  self.jobs[jobname]
             existing_job.pause()
@@ -36,6 +38,7 @@ class Scheduler:
             del job
         remove_from_dynamic_config(jobname)
         log.info(f'{jobname} removed, but won''t be removed from user config files')
+    """
 
 
     def reload(self):
@@ -47,8 +50,8 @@ class Scheduler:
 
         self.job_defs = load_job_defs()
         for jobname, job_def in self.job_defs.items():
+            log.error(f'scheduling {jobname}')
             if not job_def.get('schedule'):
                 job_def['schedule'] = ''
             job =  Job(jobname=jobname, **job_def)
             self.jobs[jobname] = job
-        

@@ -34,6 +34,7 @@ class Job:
 
         log.debug(f"Unused arguments {args} for {jobname}")
         self.running_jobs = []
+        self.timer = None
         self.play()
         'THIS MAY BLOCK HERE'
 

@@ -3,7 +3,7 @@ import argparse
 from datetime import datetime
 
 from procmanager.job_instance import actually_run_job
-from procmanager.config import load_job_defs, CONFIG_FILES
+from procmanager.config import load_job_defs
 import procmanager.db
 
 def serve(args):

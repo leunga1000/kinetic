@@ -23,6 +23,11 @@ dev mode:
 ---------
 This is mostly intended to run in user space.
 
+```
+python -m build (to create procmanager wheel)
+pip install -e .
+```
+
 build package:
 --------------
 install dev requirements

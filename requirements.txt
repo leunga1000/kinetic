@@ -9,3 +9,6 @@ termcolor
 #blessings
 #tornadopsutil
 dateparser
+tabulate # todo check if still using
+prompt-toolkit
+watchfiles
