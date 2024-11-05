@@ -37,10 +37,21 @@ SSL:
 ====
 We recommend using a reverse_proxy such as nginx apache or Caddy to provide SSL functionality.
 
+error modes:
+============
+
+messaging:
+==========
+email
+
+uptimerobot
+
+
 Alternatives:
 =============
 
 - Cron (obviously!)
+- anacron
 - Cronitor - email and status service, keep using cron jobs.
 - Python Scheduler, APScheduler
 - systemd timers
@@ -52,3 +63,5 @@ Alternatives:
 - Rufus Scheduler
 - Crystal Tasker
 - Rust scheduler
+
+- airflow et. al

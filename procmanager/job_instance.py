@@ -173,13 +173,14 @@ def _stream_pipe(source, process):
     has_errors = False
     for line in pipe:
         print(line)
-        if not started_output:
-            __m.job_instance.go()
-            started_output = True
+        #if not started_output:
+        #    __m.job_instance.go()
+        #    started_output = True
 
         #if source =='stdout':
         if not has_errors and source =='stderr':
             __m.job_instance.had_errors()
+            has_errors = True
         
         append_log(__m.job_instance.id, source, line.decode())
         #append_log(__m.job_instance.id, 'stdout', line)
@@ -207,6 +208,12 @@ def _run_following_jobs(follow_on_type, prev_job_id, prev_job_def):
     elif following_jobs is not None:
         for job in following_jobs:
             run_job(job)
+
+def _kill_process_tree(pid):
+    process = psutil.Process(pid)
+    for proc in process.children(recursive=True):
+        proc.kill()
+    process.kill()
 
 def actually_run_job(jobname):
     # close cleanly on sigint
@@ -263,6 +270,7 @@ def actually_run_job(jobname):
 
 
         ''' Your code, bit naff, might have contention between stdout and stderr threads? '''
+        __m.job_instance.go()
         process = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
         __m.process = process
         process_pid = process.pid
@@ -285,7 +293,8 @@ def actually_run_job(jobname):
 
             if timeout_dt and (datetime.now() > timeout_dt):
                 timed_out = True
-                process.kill()
+                #process.kill()
+                _kill_process_tree(process.pid)  # kills subprocesses e.g. those spawned using processpoolexecutor
 
             time.sleep(1)
           
@@ -341,8 +350,12 @@ def run_job(jobname):
     # args.remove('socketify')
     args = [sys.executable]
     # module_name = sys.modules[__name__]
-    module_name = 'procmanager'
-    args += ['-m', module_name]
+
+    # If run via python env and library e.g. python -m procmanager insteads of pm-cli
+    if 'py' in str(sys.executable).lower():
+        module_name = 'procmanager'
+        args += ['-m', module_name]
+
     # args.append('--jobname')
     args.append('run')
     args.append(jobname)  # i.e. pm-cli run JOBNAME

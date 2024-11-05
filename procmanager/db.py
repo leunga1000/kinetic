@@ -3,6 +3,7 @@ import os
 import sqlite3
 from procmanager import config
 from procmanager import process_utils
+from procmanager import utils
 from procmanager.config import LOG_DIR
 
 DB_PATH = config.DB_PATH
@@ -108,7 +109,9 @@ def append_log(_id, source, line):
 
 
 def create_job_instance(jobname) -> str:
-    _id = f'{jobname}-{datetime.now().timestamp()}'
+    encoded_timestamp = utils.encode_timestamp(datetime.now().timestamp())
+    # _id = f'{jobname}-{datetime.now().timestamp()}'
+    _id = f'{jobname}-{encoded_timestamp}'
     insert_job_instance(_id, jobname)
     return _id
 
@@ -141,7 +144,8 @@ def is_job_running(jobname):
        is really running, clears up if not """
     IS_JOB_RUNNING = f"""SELECT id, pid from job_instances where
          jobname = ? and
-         (status = 'NW' or status = 'GO') """
+         (status = 'GO') """
+         # (status = 'NW' or status = 'GO') """
     conn, cur = get_cursor()
     print(IS_JOB_RUNNING)
     res = list(cur.execute(IS_JOB_RUNNING, (jobname,)).fetchall())
