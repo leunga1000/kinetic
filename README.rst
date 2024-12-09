@@ -1,5 +1,5 @@
-Process Runner:
-===============
+Kinetic, a process runner:
+==========================
 
 Runs processes on a schedule and monitors results.
 
@@ -10,32 +10,24 @@ Written to coordinate data processing tasks.
 Usage:
 ======
 
-`pip install procmanager`
+- Download the binary from the releases page and store in your $HOME/bin directory.
+- `pm-cli install` to install a user service that will schedule jobs.
 
-Run web server TODO
-`pm-cli`
+
+
+Building:
+=========
+After cloning repo, installing dev and application requirements.txt
+`install.sh` will build the application and distribute it to your home/bin directory.
 
 Run particular job by name
-`pm-cli --jobname <jobname>`
+`pm-cli run <jobname>`
 
 
 dev mode:
 ---------
 This is mostly intended to run in user space.
 
-```
-python -m build (to create procmanager wheel)
-pip install -e .
-```
-
-build package:
---------------
-install dev requirements
-`python -m build` in package directory
-
-SSL:
-====
-We recommend using a reverse_proxy such as nginx apache or Caddy to provide SSL functionality.
 
 error modes:
 ============
@@ -63,5 +55,4 @@ Alternatives:
 - Rufus Scheduler
 - Crystal Tasker
 - Rust scheduler
-
 - airflow et. al
