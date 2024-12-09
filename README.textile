@@ -9,7 +9,7 @@ Written to coordinate data processing tasks.
 
 h2. Usage:
 
-- After downloading the binary from the releases page and store in your $HOME/bin directory
+After downloading the binary from the releases page and storing in your @$HOME/bin@ directory
 
 bc. pm-cli install
 
