@@ -20,12 +20,12 @@ Configuration file:
 ===================
 Any .toml file in ~/.pm_dir will be loaded. Example config:
 
-::
 
+``
 [print-output]
 schedule="0 13 * * *"
 command="python -c 'print(\"hello\");raise Exception(\"2\")'"
-
+``
 
 Building:
 =========
