@@ -1,4 +1,4 @@
-Kinetic, a process runner:
+h1. Kinetic, a process runner:
 ==========================
 
 Runs processes on a schedule and monitors results.
