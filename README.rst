@@ -10,8 +10,11 @@ Written to coordinate data processing tasks.
 Usage:
 ======
 
-- Download the binary from the releases page and store in your $HOME/bin directory.
-- `pm-cli install` to install a user service that will schedule jobs.
+- After downloading the binary from the releases page and store in your $HOME/bin directory
+
+pm-cli install
+
+to install a user service that will schedule jobs.
 
 
 
