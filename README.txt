@@ -12,10 +12,19 @@ Usage:
 
 - After downloading the binary from the releases page and store in your $HOME/bin directory
 
-pm-cli install
+``pm-cli install``
 
 to install a user service that will schedule jobs.
 
+Configuration file:
+===================
+Any .toml file in ~/.pm_dir will be loaded. Example config:
+
+::
+
+[print-output]
+schedule="0 13 * * *"
+command="python -c 'print(\"hello\");raise Exception(\"2\")'"
 
 
 Building:
