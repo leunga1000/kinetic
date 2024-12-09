@@ -1,5 +1,5 @@
-h1. Kinetic, a process runner:
-==========================
+h1. Kinetic, a process runner
+--
 
 Runs processes on a schedule and monitors results.
 
@@ -7,27 +7,25 @@ Allows authenticated remote execution of pre-defined jobs.
 
 Written to coordinate data processing tasks.
 
-Usage:
-======
+h2. Usage:
 
 - After downloading the binary from the releases page and store in your $HOME/bin directory
 
-``pm-cli install``
+bc. pm-cli install
 
 to install a user service that will schedule jobs.
 
-Configuration file:
-===================
+h2. Configuration file:
+
 Any .toml file in ~/.pm_dir will be loaded. Example config:
 
-::
-[print-output]
+bc. [print-output]
 schedule="0 13 * * *"
 command="python -c 'print(\"hello\");raise Exception(\"2\")'"
 
 
-Building:
-=========
+h3. Building:
+
 After cloning repo, installing dev and application requirements.txt
 ``install.sh`` will build the application and distribute it to your home/bin directory.
 
