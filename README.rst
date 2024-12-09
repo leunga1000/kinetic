@@ -20,20 +20,19 @@ Configuration file:
 ===================
 Any .toml file in ~/.pm_dir will be loaded. Example config:
 
-
-``
+::
 [print-output]
 schedule="0 13 * * *"
 command="python -c 'print(\"hello\");raise Exception(\"2\")'"
-``
+
 
 Building:
 =========
 After cloning repo, installing dev and application requirements.txt
-`install.sh` will build the application and distribute it to your home/bin directory.
+``install.sh`` will build the application and distribute it to your home/bin directory.
 
 Run particular job by name
-`pm-cli run <jobname>`
+``pm-cli run <jobname>``
 
 
 dev mode:
