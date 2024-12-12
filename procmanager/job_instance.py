@@ -351,14 +351,14 @@ def run_job(jobname):
     args = [sys.executable]
     # module_name = sys.modules[__name__]
 
-    # If run via python env and library e.g. python -m procmanager insteads of pm-cli
+    # If run via python env and library e.g. python -m procmanager insteads of kin
     if 'py' in str(sys.executable).lower():
         module_name = 'procmanager'
         args += ['-m', module_name]
 
     # args.append('--jobname')
     args.append('run')
-    args.append(jobname)  # i.e. pm-cli run JOBNAME
+    args.append(jobname)  # i.e. kin run JOBNAME
     # args = [sys.executable] + args
     print(args)
     try:

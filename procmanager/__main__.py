@@ -6,7 +6,8 @@ import os
 import glob
 
 from procmanager.job_instance import actually_run_job
-from procmanager.config import load_job_defs, LOG_DIR, BASE_PATH
+from procmanager.config import load_job_defs, LOG_DIR, BASE_PATH, HOME_BIN
+from procmanager.install import install, upgrade
 import procmanager.db
 
 def serve(args):
@@ -161,6 +162,21 @@ def print_job_log(args):
 
     print(args.edit)
 
+def start(args):
+    """ create and start systemctl service or win service """
+    install() 
+
+def stop(args):
+    """ stop systemctl service or win service """
+    os.system("systemctl --user stop kin") 
+    os.system("systemctl --user status kin") 
+
+def upgrade(args):
+    """ Upgrade and copy binary to $HOME/bin - ought to be interacive"""
+    maybe_yes = input("Are you sure you wish to upgrade kin binary y/n")
+    if maybe_yes == 'y':
+        upgrade()
+
 def main():
     """ quick primer on argparse:
           subparsers are subcommands in argparse. set_defaults sets the function to run.
@@ -198,6 +214,10 @@ def main():
     parser_print_job_log.add_argument('job_id', type=str)
     parser_print_job_log.add_argument('--edit', '-e', action='store_true', default=False)
     parser_print_job_log.set_defaults(func=print_job_log, sub_parser=parser_print_job_log)
+    parser_start = subparsers.add_parser('start')
+    parser_start.set_defaults(func=start, sub_parser=parser_start)
+    parser_stop = subparsers.add_parser('stop')
+    parser_stop.set_defaults(func=stop, sub_parser=parser_stop)
     #foo_parser = subparsers.add_parser('foo')
     #parser.add_argument("--serve")
     args = parser.parse_args()

@@ -9,8 +9,10 @@ ACCOUNTS = {'example1': {'api_key': '13131'}}
 RUN_DIR = os.path.expanduser('~')  # os.path.dirname(os.path.realpath(__file__)) 
 # JOBS CONFIG
 
-BASE_PATH = os.path.expanduser(os.path.join('~', '.pm_dir'))
+BASE_PATH = os.path.expanduser(os.path.join('~', '.kin_dir'))
 os.makedirs(BASE_PATH, exist_ok=True)
+HOME_BIN = os.path.expanduser(os.path.join('~', 'bin'))
+os.makedirs(HOME_BIN, exist_ok=True)
 JOB_DEFS_PATH = os.path.join(BASE_PATH, 'job_defs')
 os.makedirs(JOB_DEFS_PATH, exist_ok=True)
 DYN_CONFIG_FILE = os.path.join(JOB_DEFS_PATH, 'dyn_config.toml')
