@@ -143,11 +143,11 @@ def edit(args):
     print(load_job_defs())
 
 
-def reload(args):
-    # TODO
-    host, port = 'localhost', 8737
-    auth = None
-    requests.get(f'{host}:{port}/reload_config')
+#def reload(args):
+#    # TODO
+#    host, port = 'localhost', 8737
+#    auth = None
+#    requests.get(f'{host}:{port}/reload_config')
 
 def print_job_log(args):
     job_log_path = f"{LOG_DIR}/{args.job_id}.log"
