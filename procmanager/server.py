@@ -3,7 +3,6 @@ import threading
 
 from watchfiles import watch
 
-from procmanager.web_server import start_web_server
 from procmanager.scheduler import Scheduler
 from procmanager.job_instance import cleanup_jobs
 from procmanager.config import job_defs_path

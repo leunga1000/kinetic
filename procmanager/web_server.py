@@ -14,7 +14,7 @@ async def runjob(res, req, jobname):
 
 
 
-def start_web_server(web_app=None, args):
+def start_web_server(web_app=None, args=None):
     return
     
 
