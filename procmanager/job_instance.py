@@ -118,11 +118,9 @@ def clear_zombie(parent_pid, system_pids=None):
         ppp = pp.parent()
         if ppp:
             pparents.append(ppp)
+
+    print('..waiting for processes to exit')
     for p in [parent_process, *pparents, *parent_process.children()]:
-        print(p)
-        print(p.status())
-        print('poll em all')
-        print(p.is_running())
         if p.status() == psutil.STATUS_ZOMBIE:
             print('polling zombie')
             p.is_running()
@@ -343,11 +341,6 @@ def run_job(jobname):
     
     args = copy(sys.argv)
     
-    # if args[1] == '-m':
-    #     args.pop(1)
-    # if args[1] == 'socketify':
-    #     args.pop(1)
-    # args.remove('socketify')
     args = [sys.executable]
     # module_name = sys.modules[__name__]
 

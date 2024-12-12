@@ -1,5 +1,6 @@
 from datetime import datetime 
 import os
+import gzip
 import sqlite3
 from procmanager import config
 from procmanager import process_utils
@@ -88,14 +89,15 @@ def list_job_instances(jobname=None, top_down=False, limit=None, offset=None):
     return (dict(r) for r in res)
 
 def append_log(_id, source, line):
-    log_name = _id + '.log'
+    log_name = _id + '.log.gz'
     path = os.path.join(LOG_DIR, log_name)
 
     if source == 'stderr':
         line = f'ERROR: {line}'
 
-    with open(path, 'a') as f:
+    with gzip.open(path, 'at') as f:
         f.write(line)
+        f.write('\n')
     # this could be slow, might want to put it in a file instead.
     #source = 0 if source == 'stdout' else 1
     #APPEND_LOG = f"""insert into ji_logs values 
@@ -125,7 +127,7 @@ def update_job_instance(_id, **kwargs):
         {update_clause}
         where id = ?; """
     conn, cur = get_cursor()
-    print(UPDATE_JOB_INSTANCE)
+    # print(UPDATE_JOB_INSTANCE)
     #conn.set_trace_callback(print)
     cur.execute(UPDATE_JOB_INSTANCE, (*list(kwargs.values()), _id))
     conn.commit()

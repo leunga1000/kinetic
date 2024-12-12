@@ -152,11 +152,13 @@ def edit(args):
 def print_job_log(args):
     job_log_path = f"{LOG_DIR}/{args.job_id}.log"
     open_fn = open
+    open_mode = 'r'
     if not os.path.exists(job_log_path):
         job_log_path = job_log_path + '.gz'
         open_fn = gzip.open
+        open_mode = 'rt'
 
-    with open_fn(job_log_path, 'r') as f:
+    with open_fn(job_log_path, open_mode) as f:
         for line in f.readlines():
             print(line, end='')
 
@@ -208,8 +210,6 @@ def main():
     parser_log = subparsers.add_parser('lll', help="log in live mode")
     parser_log.add_argument('follow', action='store_true', default=True)
     parser_log.set_defaults(func=show_log_app, sub_parser=parser_log)
-    parser_reload = subparsers.add_parser('reload')
-    parser_reload.set_defaults(func=reload, sub_parser=parser_reload)
     parser_print_job_log = subparsers.add_parser('jl', help="show/edit (cat/$EDITOR) output for job_id", aliases=['cat'])
     parser_print_job_log.add_argument('job_id', type=str)
     parser_print_job_log.add_argument('--edit', '-e', action='store_true', default=False)
