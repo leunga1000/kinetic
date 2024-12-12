@@ -1,13 +1,11 @@
-#bottle
 # apscheduler not wokring?
-#-e ../socketify.py
 croniter
 toml
 psutil
 colorama
 termcolor
 #blessings
-#tornadopsutil
+#tornado
 dateparser
 tabulate # todo check if still using
 prompt-toolkit

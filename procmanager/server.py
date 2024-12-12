@@ -101,12 +101,7 @@ def start_scheduler():
     #    await scheduler.add_schedule(tick, IntervalTrigger(seconds=1))
 
 
-def start_server_socketify_is_this_needed(web_app: 'App'):
-    # Socetify might require special argument signature. remove if not
-    start_server(web_app=web_app)
-
-def start_server(web_app=None, args: 'argparseNamespace'=None):  # web_app this is to pass to the socketify initialisation interface
-        # web_app is positional for socketify
+def start_server(web_app=None, args=None):  
         start_scheduler()
 
         signal.pause()
