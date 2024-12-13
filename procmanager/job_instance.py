@@ -11,9 +11,9 @@ from datetime import datetime
 import psutil
 import dateparser
 from procmanager import db
-from procmanager.db import append_log
 from procmanager import config
 from procmanager import process_utils
+from procmanager.config import LOG_DIR
 
 
 JOBS = {"hello": "echo hello",
@@ -158,8 +158,28 @@ def get_timeout_dt(timeout):
         print(e)
         print(f'Couldn\'t parser timeout expression {timeout}')
 
+
+def get_log_path(_id):
+    log_name = _id + '.log'
+    return os.path.join(LOG_DIR, log_name)
+
+def append_log(_id, source, line):
+    log_path = get_log_path(_id)
+
+    if source == 'stderr':
+        line = f'ERROR: {line}'
+
+    with open(log_path, 'a') as f:
+        f.write(line)
+
+
+def zip_log(_id):
+    log_path = get_log_path(_id)
+    os.system(f'gzip {log_path}')
+
+
                
-def _stream_pipe(source, process):
+def _stream_pipe(source, process, job_instance):
     if source == 'stdout':
         pipe = process.stdout
     else:
@@ -172,16 +192,16 @@ def _stream_pipe(source, process):
     for line in pipe:
         print(line)
         #if not started_output:
-        #    __m.job_instance.go()
+        #    job_instance.go()
         #    started_output = True
 
         #if source =='stdout':
         if not has_errors and source =='stderr':
-            __m.job_instance.had_errors()
+            job_instance.had_errors()
             has_errors = True
         
-        append_log(__m.job_instance.id, source, line.decode())
-        #append_log(__m.job_instance.id, 'stdout', line)
+        append_log(job_instance.id, source, line.decode())
+        #append_log(job_instance.id, 'stdout', line)
     #if process.poll() is not None:
     #    return
     #    # time.sleep(1)
@@ -215,18 +235,29 @@ def _kill_process_tree(pid):
 
 def actually_run_job(jobname):
     # close cleanly on sigint
+    def _signal_handler(sig, frame):
+        if process and process.pid:
+            ppid = psutil.Process(process.pid).ppid() 
+            if ppid == os.getpid():
+                process.kill()
+                print('cancelling' )
+                job_instance.cancel()
+        sys.exit(1)
     signal.signal(signal.SIGINT, _signal_handler)
+
 
     JOB_DEFS = config.load_job_defs()
     print(JOB_DEFS)
     job_def = JOB_DEFS[jobname]
     timeout_dt = get_timeout_dt(job_def.get('timeout'))
-    # global process
-    __m.job_instance = JobInstance(jobname)
+    # global process for each job 
+    job_instance = JobInstance(jobname)
+    # store it for the signal_handler,  otherwise it pass it through
+    __m.job_instance = job_instance
 
     # Check to see if job is clear to run
     if not _can_run(job_def):
-        __m.job_instance.skip()
+        job_instance.skip()
         return
 
     if platform.system() == 'Windows':
@@ -242,14 +273,14 @@ def actually_run_job(jobname):
         ''' SO code, simpler  '''
         '''
         with subprocess.Popen(args, stdout=PIPE, stderr=STDOUT, text=True) as process:
-            __m.process = process
+            process = process
             process_pid = process.pid
-            __m.job_instance.save_pid(process.pid)
+            job_instance.save_pid(process.pid)
             for line in process.stdout:
                 if not started_output:
-                    __m.job_instance.go()
+                    job_instance.go()
                     started_output = True
-                append_log(__m.job_instance.id, 'stdout', line)
+                append_log(job_instance.id, 'stdout', line)
 
             print(process)
             print('arj pid: %s' % process_pid)
@@ -257,9 +288,9 @@ def actually_run_job(jobname):
             print(p_res) 
 
         if process.returncode == 0:
-            __m.job_instance.complete()
+            job_instance.complete()
         else:
-            __m.job_instance.error()
+            job_instance.error()
         print(f'waiting for {parent_pid} to clear zombie')
         wait_pid(parent_pid)
         #wait_pid(process_pid)
@@ -268,14 +299,14 @@ def actually_run_job(jobname):
 
 
         ''' Your code, bit naff, might have contention between stdout and stderr threads? '''
-        __m.job_instance.go()
+        job_instance.go()
         process = subprocess.Popen(args, stdout=PIPE, stderr=PIPE)
-        __m.process = process
+        process = process
         process_pid = process.pid
-        __m.job_instance.save_pid(process_pid)
-        th_out = Thread(target=_stream_pipe, args=['stdout', process], daemon=True)
+        job_instance.save_pid(process_pid)
+        th_out = Thread(target=_stream_pipe, args=['stdout', process, job_instance], daemon=True)
         th_out.start()
-        th_err = Thread(target=_stream_pipe, args=['stderr', process], daemon=True)
+        th_err = Thread(target=_stream_pipe, args=['stderr', process, job_instance], daemon=True)
         th_err.start()
         timed_out = False
         while True:
@@ -298,14 +329,14 @@ def actually_run_job(jobname):
           
 
         if timed_out:
-            __m.job_instance.timed_out()
-            _run_following_jobs('error', __m.job_instance.id, job_def)
+            job_instance.timed_out()
+            _run_following_jobs('error', job_instance.id, job_def)
         elif process.returncode == 0:
-            __m.job_instance.complete()
-            _run_following_jobs('next', __m.job_instance.id, job_def)
+            job_instance.complete()
+            _run_following_jobs('next', job_instance.id, job_def)
         else:
-            __m.job_instance.error()
-            _run_following_jobs('error', __m.job_instance.id, job_def)
+            job_instance.error()
+            _run_following_jobs('error', job_instance.id, job_def)
 
         print(f'waiting for {parent_pid} to clear zombie')
         wait_pid(parent_pid)
@@ -318,20 +349,11 @@ def actually_run_job(jobname):
         if th_err:
             th_err.join()
 
+        zip_log(job_instance.id)
 
 
     
 
-
-def _signal_handler(sig, frame):
-    # global process
-    if __m.process and __m.process.pid:
-        ppid = psutil.Process(__m.process.pid).ppid() 
-        if ppid == os.getpid():
-            __m.process.kill()
-            print('cancelling' )
-            __m.job_instance.cancel()
-    sys.exit(1)
 
 
 
