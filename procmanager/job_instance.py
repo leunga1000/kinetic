@@ -175,7 +175,15 @@ def append_log(_id, source, line):
 
 def zip_log(_id):
     log_path = get_log_path(_id)
-    os.system(f'gzip {log_path}')
+    try:
+        # blocking
+        # os.system(f'gzip {log_path}')
+
+        # non blocking
+        args = ['gzip', log_path]
+        p = subprocess.Popen(args, cwd=config.LOG_DIR) #, check=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    except Exception as e:
+        print(e)
 
 
                
