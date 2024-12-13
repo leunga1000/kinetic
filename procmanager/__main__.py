@@ -32,7 +32,6 @@ def list_(args):
 
 from colorama import just_fix_windows_console
 just_fix_windows_console()
-from termcolor import colored
 # There's also blessings for bold, underline.
 
 def show_log_app(args):
@@ -41,73 +40,10 @@ def show_log_app(args):
 
 def show_log(args):
     from procmanager.tui_helpers import generate_log_table
-    import rich
-    from rich import print as rprint, table, box
-
-
-    if hasattr(args, 'follow') and args.follow:
-        import rich.live, time
-        def get_table():
-            rows, properties = generate_log_table() 
-            t = table.Table(box=box.MINIMAL_HEAVY_HEAD, expand=True)
-            for p in properties:
-                t.add_column(p)
-            for row in rows[-25:]:
-                #rprint(*row)
-                t.add_row(*[str(r) for r in row])
-            return t
-        t = get_table()
-        with rich.live.Live(t, refresh_per_second=0.25) as live_table:
-            while True:
-                live_table.update(t)
-                time.sleep(4)
-                t = get_table()
-    else:
-        rows, properties = generate_log_table() 
-        import tabulate
-        from termcolor import cprint
-        #cprint(tabulate.tabulate(rows[-1000:]))
-        print(tabulate.tabulate(rows[-1000:]))
-        return
-        #rprint(tabulate.tabulate(rows[-50:]))
-        #from rich.console import Console
-        #console = Console()
-        console.print(tabulate.tabulate(rows[-1000:]), highlight=False)
-        #for row in rows:
-        #   rprint(tabulate.tabulate(row))
-        #rich.print(t)
-
-""" TODO remove, moved to tui_helpers.py 
-def generate_log_table(args):
-    properties = ['id', 'status', 'started_at', 'finished_at', 'pid', 'running_length'] #jobname
-    # There's also blessings for bold, underline.
-    def format_value(k, v):
-        if k == 'status':
-            if v == 'OK':
-                #v = f'[green]{v}[/green]'
-                v = colored(v, 'green') 
-            elif v == 'NW':
-                #v = f'[cyan]{v}[/cyan]'
-                v = colored(v, 'cyan', attrs=["blink"]) 
-            elif v == 'SK':
-                #v = f'[bright_black]{v}[/bright_black]'
-                v = colored(v, 'dark_grey')
-            elif v == 'ER':
-                #v = f'[red]{v}[/red    ]'
-                v = colored(v, 'red')
-            elif v == 'GO':
-                #v = f'[red]{v}[/red    ]'
-                v = colored(f'{v}', 'blue', 'on_black', attrs=["blink"])  # reverse
-        return str(v)
-    rows = []
-    for ji in procmanager.db.list_job_instances():
-        ji = {k:v for k, v in ji.items() if k in properties}
-        ji['started_at'] = datetime.fromtimestamp(ji['started_at']).strftime('%Y-%m-%d %H:%M:%S') if ji['started_at'] else None
-        ji['finished_at'] = datetime.fromtimestamp(ji['finished_at']).strftime('%Y-%m-%d %H:%M:%S') if ji['finished_at'] else None
-        #print(*list(ji.values()))
-        rows.append([format_value(k,v) for k,v in ji.items()])
-    return rows, properties 
-"""
+    rows, properties = generate_log_table() 
+    import tabulate
+    print(tabulate.tabulate(rows[-1000:]))
+    return
 
 
 

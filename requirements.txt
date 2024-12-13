@@ -9,6 +9,6 @@ termcolor
 dateparser
 tabulate # todo check if still using
 prompt-toolkit
-rich
+# rich flickers for live 
 watchfiles
 pyinstaller

@@ -5,7 +5,6 @@ import sqlite3
 from procmanager import config
 from procmanager import process_utils
 from procmanager import utils
-from procmanager.config import LOG_DIR
 
 DB_PATH = config.DB_PATH
 
@@ -88,16 +87,16 @@ def list_job_instances(jobname=None, top_down=False, limit=None, offset=None):
     #print(cur.description)
     return (dict(r) for r in res)
 
+''' TODO REMOVE
 def append_log(_id, source, line):
-    log_name = _id + '.log.gz'
+    log_name = _id + '.log'
     path = os.path.join(LOG_DIR, log_name)
 
     if source == 'stderr':
         line = f'ERROR: {line}'
 
-    with gzip.open(path, 'at') as f:
+    with open(path, 'a') as f:
         f.write(line)
-        f.write('\n')
     # this could be slow, might want to put it in a file instead.
     #source = 0 if source == 'stdout' else 1
     #APPEND_LOG = f"""insert into ji_logs values 
@@ -108,6 +107,7 @@ def append_log(_id, source, line):
     #conn, cur = get_cursor()
     #cur.execute(APPEND_LOG, (_id, source, line.rstrip('\n')))
     #conn.commit()
+    '''
 
 
 def create_job_instance(jobname) -> str:
