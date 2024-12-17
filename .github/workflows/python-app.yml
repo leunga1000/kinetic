@@ -41,6 +41,15 @@ jobs:
     - name: Build with pyinstaller
       run: |
           pyinstaller --onefile -n kin procmanager/__main__.py
+    - name: release
+      uses: actions/create-release@v1
+      id: create_release
+      with:
+        draft: false
+        prerelease: false
+        release_name: ${{ steps.version.outputs.version }}
+        tag_name: ${{ github.ref }}
+        # body_path: CHANGELOG.md
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v4.4.3
       with:
