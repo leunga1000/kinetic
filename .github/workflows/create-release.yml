@@ -43,7 +43,7 @@ jobs:
           pyinstaller --onefile -n kin procmanager/__main__.py
     - name: Get Version Number and Set Output
       id: version
-      run: echo "{version}={$(dist/kin --version)}" >> $GITHUB_OUTPUT
+      run: echo "{version}={$(dist/kin version)}" >> $GITHUB_OUTPUT
     - name: Create Release
       uses: actions/create-release@v1
       env:
