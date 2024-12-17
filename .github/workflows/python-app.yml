@@ -46,3 +46,7 @@ jobs:
       with:
           name: kin
           path: dist/kin
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/kin
+          asset_name: kin
+          
