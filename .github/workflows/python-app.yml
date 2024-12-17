@@ -46,6 +46,8 @@ jobs:
       id: version
     - name: Create Release
       uses: actions/create-release@v1
+      env:
+          GITHUB_TOKEN: ${{ github.token }}
       id: create_release
       with:
         draft: false
