@@ -41,7 +41,10 @@ jobs:
     - name: Build with pyinstaller
       run: |
           pyinstaller --onefile -n kin procmanager/__main__.py
-    - name: release
+    - name: Get Version Number
+      run: echo "::set-output name=version::$(dist/kin --version)"
+      id: version
+    - name: Create Release
       uses: actions/create-release@v1
       id: create_release
       with:
@@ -50,11 +53,11 @@ jobs:
         release_name: ${{ steps.version.outputs.version }}
         tag_name: ${{ github.ref }}
         # body_path: CHANGELOG.md
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v4.4.3
-      with:
-          name: kin
-          path: dist/kin
+    #- name: Upload a Build Artifact
+    #  uses: actions/upload-artifact@v4.4.3
+    #  with:
+    #      name: kin
+    #      path: dist/kin
     - name: Upload as Release
       uses: actions/upload-release-asset@v1
       env:
