@@ -109,6 +109,9 @@ def stop(args):
     os.system("systemctl --user stop kin") 
     os.system("systemctl --user status kin") 
 
+def version(args):
+    print(0.01)
+
 def upgrade(args):
     """ Upgrade and copy binary to $HOME/bin - ought to be interacive"""
     maybe_yes = input("Are you sure you wish to upgrade kin binary y/n")
@@ -154,6 +157,8 @@ def main():
     parser_start.set_defaults(func=start, sub_parser=parser_start)
     parser_stop = subparsers.add_parser('stop')
     parser_stop.set_defaults(func=stop, sub_parser=parser_stop)
+    parser_version = subparsers.add_parser('version')
+    parser_version.set_defaults(func=version, sub_parser=parser_version)
     #foo_parser = subparsers.add_parser('foo')
     #parser.add_argument("--serve")
     args = parser.parse_args()
