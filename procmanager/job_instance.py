@@ -124,6 +124,7 @@ def clear_zombie(parent_pid, system_pids=None):
         if p.status() == psutil.STATUS_ZOMBIE:
             print('polling zombie')
             p.is_running()
+    print('...done.\n')
 
 def cleanup_jobs():
     boot_time = psutil.boot_time()  # TODO check when machine has timezones
@@ -198,7 +199,7 @@ def _stream_pipe(source, process, job_instance):
     started_output = False
     has_errors = False
     for line in pipe:
-        print(line)
+        print(line.decode())
         #if not started_output:
         #    job_instance.go()
         #    started_output = True
@@ -255,8 +256,8 @@ def actually_run_job(jobname):
 
 
     JOB_DEFS = config.load_job_defs()
-    print(JOB_DEFS)
     job_def = JOB_DEFS[jobname]
+    print(f'.running {jobname}')
     timeout_dt = get_timeout_dt(job_def.get('timeout'))
     # global process for each job 
     job_instance = JobInstance(jobname)
@@ -322,10 +323,9 @@ def actually_run_job(jobname):
             #     print(so)
             # while (se := process.stderr.readline()):
             #     print(se)
-            pres = process.poll()
-            if pres is not None:
-                print(pres)
-                time.sleep(0.5)
+            p_result = process.poll()
+            if p_result is not None:
+                print(f'.process exit code = {p_result}')
                 break
 
             if timeout_dt and (datetime.now() > timeout_dt):
@@ -346,7 +346,7 @@ def actually_run_job(jobname):
             job_instance.error()
             _run_following_jobs('error', job_instance.id, job_def)
 
-        print(f'waiting for {parent_pid} to clear zombie')
+        print(f'.waiting for {parent_pid} to clear zombie')
         wait_pid(parent_pid)
         #wait_pid(process_pid)
         clear_zombie(parent_pid)  # TODO might not need this
@@ -383,7 +383,7 @@ def run_job(jobname):
     args.append('run')
     args.append(jobname)  # i.e. kin run JOBNAME
     # args = [sys.executable] + args
-    print(args)
+    # print(args)
     try:
         p = subprocess.Popen(args, cwd=config.RUN_DIR) #, check=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
     except Exception as e:

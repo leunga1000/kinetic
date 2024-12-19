@@ -7,7 +7,7 @@ import glob
 
 from procmanager.job_instance import actually_run_job
 from procmanager.config import load_job_defs, LOG_DIR, BASE_PATH, HOME_BIN
-from procmanager.install import install, upgrade
+from procmanager.install import install, do_update
 import procmanager.db
 
 def serve(args):
@@ -112,11 +112,11 @@ def stop(args):
 def version(args):
     print(0.01)
 
-def upgrade(args):
-    """ Upgrade and copy binary to $HOME/bin - ought to be interacive"""
-    maybe_yes = input("Are you sure you wish to upgrade kin binary y/n")
-    if maybe_yes == 'y':
-        upgrade()
+def update_(args):
+    """ Upgrade and copy binary to $HOME/bin - ought to be interactive"""
+    maybe_yes = input("Are you sure you wish to update the kin binary (y or n + Enter) \n")
+    if maybe_yes.lower() == 'y':
+        do_update()
 
 def main():
     """ quick primer on argparse:
@@ -159,6 +159,8 @@ def main():
     parser_stop.set_defaults(func=stop, sub_parser=parser_stop)
     parser_version = subparsers.add_parser('version')
     parser_version.set_defaults(func=version, sub_parser=parser_version)
+    parser_update = subparsers.add_parser('update')
+    parser_update.set_defaults(func=update_, sub_parser=parser_update)
     #foo_parser = subparsers.add_parser('foo')
     #parser.add_argument("--serve")
     args = parser.parse_args()

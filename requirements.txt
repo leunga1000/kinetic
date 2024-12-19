@@ -12,3 +12,4 @@ prompt-toolkit
 # rich flickers for live 
 watchfiles
 pyinstaller
+requests

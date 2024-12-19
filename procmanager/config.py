@@ -20,6 +20,10 @@ DYN_CONFIG_FILE = os.path.join(JOB_DEFS_PATH, 'dyn_config.toml')
 LOG_DIR = os.path.join(BASE_PATH, 'logs')
 os.makedirs(LOG_DIR, exist_ok=True)
 
+# UPDATE CONFIG
+KINETIC_BINARY_URL_X64 = 'https://kinetic.icedb.info/x64/kin'
+
+
 def config_files():
     # CONFIG_FILES = 
     return glob.glob(f'{JOB_DEFS_PATH}/**', recursive=True)
@@ -34,8 +38,8 @@ DB_PATH = os.path.join(BASE_PATH, DB_FILENAME)
 def load_job_defs():
     # returns dictionary job defs
     job_defs = {}
+    print(f'..Loading defs from {JOB_DEFS_PATH}')
     for path in config_files():
-        print(path)
         if not os.path.isfile(path):
             continue
         with open(path, 'r') as fh:
@@ -44,7 +48,7 @@ def load_job_defs():
             elif path.endswith('toml'):
                 d = toml.load(fh)
             else:
-                print(f'Extension {path} not yet implemented')
+                print(f'..Extension {path} not yet implemented')
                 continue
             # yaml, ini
         # merge dictionaries
