@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "In case of errors remove build_venv first"
 python -m venv build_venv && 
 	source build_venv/bin/activate &&
 	pip install -r requirements.txt && 
