@@ -52,10 +52,7 @@ class Job:
         print(next_time)
         if not next_time:
             return
-        import os
-        from datetime import datetime
-        with open('/home/user/debug.log', 'a') as f:
-            f.write(f'scheduling {self.jobname} from {os.getpid()} at {datetime.now()}\n')
+
         # If wait time total seconds is significantly (even 0.25 secs, or potentially more) early will get a double schedule.
         # - because total seconds does not have fractional component, unlike seconds did.
         # but remember changing this use total seconds. total seconds is all of the timedelta, not just the seconds up to a day.
@@ -66,8 +63,7 @@ class Job:
         wait_time_time_delta = (next_time - datetime.now(tz=self.tz))
         wait_time_time_delta_fraction_seconds = (wait_time_time_delta.microseconds / 1_000_000 ) + 0.002
         wait_time = wait_time_time_delta.total_seconds() + wait_time_time_delta_fraction_seconds
-        with open('/home/user/debug.log', 'a') as f:
-            f.write(f'wait_time {wait_time} {wait_time_time_delta_fraction_seconds} \n')
+
         self.timer = Timer(wait_time, self.run_instance, args=None, kwargs=None)
         self.timer.daemon = True
         self.timer.start()
