@@ -1,3 +1,5 @@
+import threading
+
 from procmanager.job import Job
 from procmanager.config import load_job_defs
 from procmanager.dynamic_user_config import add_to_dynamic_config, remove_from_dynamic_config
@@ -9,6 +11,7 @@ class Scheduler:
     def __init__(self):
         self.job_defs = {}
         self.jobs = {}
+        self.lock = threading.Lock()
         self.reload()
    
     """ TODO DELETE
@@ -41,7 +44,7 @@ class Scheduler:
     """
 
 
-    def reload(self):
+    def _reload(self):
         # reloads the jobs list and regenerates jobs
         for jobname, job in self.jobs.items():
             job.pause()
@@ -55,3 +58,7 @@ class Scheduler:
                 job_def['schedule'] = ''
             job =  Job(jobname=jobname, **job_def)
             self.jobs[jobname] = job
+
+    def reload(self): # with Lock
+        with self.lock: 
+            return self._reload()
